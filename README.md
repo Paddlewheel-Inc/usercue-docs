@@ -131,13 +131,19 @@ See [GitHub Releases](https://github.com/Paddlewheel-Inc/usercue-docs/releases) 
 
 ---
 
-## Ownership, copyright, and licence
+## License & Legal
 
-All content, design, and code in this repository are the property of **Paddlewheel Inc** and are protected by applicable copyright laws.
+Copyright (c) 2026 Paddlewheel Inc.
 
-The **Paddlewheel** name and associated branding are protected by applicable trademark and intellectual property laws. Unauthorised use, reproduction, or misrepresentation of Paddlewheel branding or repository contents is not permitted without prior written consent.
+This repository is open-source software licensed under the [MIT License](LICENSE).
 
-This project is open-source software licensed under the [MIT License](./LICENSE).
+### Trademarks & Branding
+The Paddlewheel name, logo, and associated branding are protected trademarks and intellectual property of Paddlewheel Inc. Standard open-source permissions granted under the MIT License do not grant rights to use Paddlewheel trademarks or logos without prior written consent.
+
+### Third-Party Acknowledgments
+* **Fumadocs:** Built using [Fumadocs](https://fumadocs.dev/) ([Repository](https://github.com/fuma-nama/fumadocs) | [License](https://github.com/fuma-nama/fumadocs/blob/main/LICENSE))
+* **Next.js:** Built on [Next.js](https://nextjs.org/) ([Repository](https://github.com/vercel/next.js))
+* **Respective Rights:** All third-party libraries, software, trademarks, and logos referenced or used in this project are the property of their respective owners.
 
 ---
 
