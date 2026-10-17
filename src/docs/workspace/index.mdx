@@ -1,0 +1,41 @@
+---
+title: Workspace
+description: The staff home, the inbox, and what is personal versus shared.
+sidebarTitle: Workspace
+---
+
+The workspace is `/admin`. You need the Dashboard permission. Owner and Staff have it. A Member account, which is what a public sign-in creates, does not.
+
+Sign in at `/login`. If you are already signed in as staff, that page sends you straight to the workspace.
+
+## Overview
+
+Overview is the landing page.
+
+The heart row is a count for each status: Open, Planned, In Progress, Complete, and Closed. Each heart links to the inbox filtered to that status. The hearts use the status color, not the workspace accent.
+
+On stage lists suggestions currently In Progress. New faces lists the newest accounts, if you can manage users. Fresh on the board lists the newest suggestions, with status, votes, and an excerpt.
+
+## Inbox
+
+Requests is the triage list. It is filtered by the status and board selected in the sidebar. Search matches the title and description.
+
+The selected suggestion opens beside the list. From there you can change status, apply tags, assign someone when assignment is manual, and delete. The public page for the same suggestion is `/post/{id}`.
+
+## Sidebar
+
+- The pile: Overview, then each status with a count.
+- Boards: every board, plus New board if you can manage boards. Rename is the pencil on a board. See [Boards](/boards).
+- The shop: Roadmap, and Settings if any settings tab is available to you.
+
+Lights out and Lights on, at the bottom of the sidebar, switch dark and light for you only. That choice is stored in this browser. It is not a workspace setting, and it does not change what customers see on their own machines. The accent color does. That one is in [General settings](/settings/general), and it applies to the public board and the workspace together.
+
+## Signing out
+
+The door icon next to your name signs you out and returns you to the public board.
+
+## What to read next
+
+- [Statuses and assignment](/workspace/statuses) explains the status road and assignment modes.
+- [Roadmap](/workspace/roadmap) shows what is planned, in progress, and done.
+- [Settings](/settings) covers workspace-wide configuration.

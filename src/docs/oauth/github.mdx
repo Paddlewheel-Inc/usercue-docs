@@ -1,0 +1,32 @@
+---
+title: GitHub
+description: Create a GitHub OAuth app and connect it to UserCue.
+sidebarTitle: GitHub
+author: brennanp
+---
+
+GitHub sign-in uses a [GitHub OAuth app](https://github.com/settings/developers). UserCue asks for the `read:user` and `user:email` scopes so it can read the profile and a verified email.
+
+<Steps>
+  <Step title="Open the GitHub console">
+    In UserCue, go to Settings, then Authentication, and open the GitHub card. The console link goes to GitHub's developer settings. Register a new OAuth app.
+  </Step>
+  <Step title="Set the callback URL">
+    GitHub calls this the Authorization callback URL. Copy it from the UserCue card. It ends in `/api/auth/oauth/github/callback`. The homepage URL can be your public site. GitHub does not use that for the login redirect.
+  </Step>
+  <Step title="Copy the credentials">
+    GitHub shows a Client ID immediately. Generate a client secret and copy it once. GitHub will not show the secret again either.
+  </Step>
+  <Step title="Save it in UserCue">
+    Paste the client ID and secret into the GitHub card. Leave Enable this method on. Leave Allow new team accounts off unless every GitHub user who can reach this app should become staff. Save.
+  </Step>
+</Steps>
+
+Try `/signin` in a private window. You should get the GitHub consent screen, then land back on the board as a Member. Try `/login` with a GitHub account that has no UserCue user. With new team accounts off, that attempt should fail with "No team account is linked to this login."
+
+If GitHub says the redirect URI is wrong, compare `PUBLIC_URL` with the URL you pasted. Host, scheme, and path all have to match.
+
+## What to read next
+
+- [OAuth](/oauth) explains how sign-in works across providers.
+- [Settings](/settings) is where authentication is configured.

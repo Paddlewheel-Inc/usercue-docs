@@ -1,0 +1,55 @@
+---
+title: "Quickstart"
+description: "Create the owner account, add a board, invite staff, and share the public board."
+sidebarTitle: "Quickstart"
+---
+
+A new database has no accounts. The first visit sends you to `/setup`.
+
+<Steps>
+  <Step title="Create the owner">
+    Enter a name, email, and password of at least 8 characters. This account owns the workspace. The Owner role is locked and includes every permission, so you can reach Settings, users, and roles from the start.
+  </Step>
+  <Step title="Open the workspace">
+    After setup you land on `/admin`. The sidebar lists statuses, boards, the roadmap, and Settings. Overview is the page with the status hearts and the newest suggestions.
+  </Step>
+  <Step title="Name the first board">
+    Under Boards, choose New board and type a name, up to 40 characters. UserCue builds a slug from that name and uses it in the public URL, for example `/board/feature-requests`. Renaming the board later changes the label only. The slug, and any links that use it, stay the same.
+  </Step>
+  <Step title="Invite staff">
+    Settings, then General, then Staff. Enter their email and choose Invite. You always get a registration link. If invite email is set up, UserCue sends the link as well. They pick their own password from that link and then sign in at `/login`.
+
+    A new invite joins as Staff. That role can open the workspace, manage suggestions, and manage boards. It cannot change settings, users, or roles until you give those permissions.
+  </Step>
+  <Step title="Share the board">
+    The public board is `/`. If you have more than one board, each has its own path under `/board/`. People can post, vote, and comment according to the guest setting.
+  </Step>
+</Steps>
+
+## Before you send it to customers
+
+A few settings are worth deciding up front. Each one is explained on its own page.
+
+- [Color and guests](/settings/general). Pink is the default accent. Guests can post with only a name until you turn that off.
+- [Assignment](/settings/general#assignment). Off, manual, or automatic when a suggestion becomes Planned.
+- [Sign-in](/oauth). GitHub, Discord, and Google. Leave them off and the board still works with guest names, or with email and password for staff.
+- [Tags](/boards/tags). Optional labels you apply to suggestions so a list is easier to scan.
+
+## Local install
+
+You need [Bun](https://bun.com) and PostgreSQL. On first boot the app creates the `usercue` role and database if they are missing.
+
+```bash
+bun install
+bun run dev
+```
+
+The site is at `http://localhost:5173`. The API is at `http://localhost:3000`. Vite proxies `/api` and `/uploads` to the API.
+
+Set `PUBLIC_URL` to the origin customers use, including `https://`, before you turn on OAuth. The redirect URL UserCue shows in Authentication is built from that origin. If it does not match the provider console, sign-in fails.
+
+## What to read next
+
+- [Installation](/getting-started/installation) runs UserCue on your own machine or with Docker.
+- [Environment variables](/getting-started/environment) explains each setting in `.env`.
+- [Boards](/boards) group suggestions on the public board.

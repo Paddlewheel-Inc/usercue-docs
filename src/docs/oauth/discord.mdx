@@ -1,0 +1,32 @@
+---
+title: Discord
+description: Create a Discord application and connect it to UserCue.
+sidebarTitle: Discord
+author: brennanp
+---
+
+Discord sign-in uses an application from the [Discord developer portal](https://discord.com/developers/applications). UserCue asks for the `identify` and `email` scopes. Identify provides the user id, name, and avatar. Email is required when UserCue has to create an account.
+
+<Steps>
+  <Step title="Create an application">
+    In the Discord portal, create an application. The name is what people see on the consent screen. You do not need a bot. UserCue only uses OAuth2.
+  </Step>
+  <Step title="Add the redirect">
+    Open OAuth2. Discord calls the field Redirects. Paste the URL from the UserCue Discord card. It ends in `/api/auth/oauth/discord/callback`. Save the Discord form before you leave the page. Discord drops unsaved redirects.
+  </Step>
+  <Step title="Copy the credentials">
+    The client ID is on the application page. Reset or copy the client secret from OAuth2. Treat the secret like a password.
+  </Step>
+  <Step title="Save it in UserCue">
+    Paste both into the Discord card. Enable the method. Leave Allow new team accounts off unless a Discord login should create staff by itself. Save.
+  </Step>
+</Steps>
+
+Discord only returns an email if the person's Discord account has one verified, and if they accept the email scope. Without an email, a brand new UserCue account cannot be created. Someone who is already linked can still sign in.
+
+Avatars come from Discord's CDN. Animated avatars stay animated.
+
+## What to read next
+
+- [OAuth](/oauth) explains how sign-in works across providers.
+- [Settings](/settings) is where authentication is configured.

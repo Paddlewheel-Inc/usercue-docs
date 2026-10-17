@@ -1,0 +1,66 @@
+---
+title: OAuth
+description: How GitHub, Discord, and Google sign-in work, and what the two checkboxes actually do.
+sidebarTitle: OAuth
+---
+
+Authentication is a settings tab. You need Workspace settings.
+
+UserCue can use GitHub, Discord, and Google. Each one is optional. Email and password still works for the owner and for anyone you invited. OAuth does not replace that.
+
+There are two sign-in pages:
+
+- `/signin` is for the public board. The copy is "Use a connected account to post and comment."
+- `/login` is the workspace login. It has the same providers, plus email and password.
+
+If no provider is enabled, the public sign-in page tells people that sign-in is not configured and points staff at `/login`.
+
+## What you store
+
+For each provider you save a client ID and a client secret. The secret is encrypted at rest. The form never shows it again. After the first save, the field says to leave it blank to keep the current secret, and a short SHA-256 prefix is shown so you can see that one is stored.
+
+Removing a provider deletes the stored secret. People who already signed in with it keep their UserCue account. They just cannot use that button until you connect it again.
+
+## The redirect URL
+
+Each provider card shows a URL to paste into that provider's console. It looks like this:
+
+```text
+https://your-domain.example/api/auth/oauth/github/callback
+```
+
+The host comes from `PUBLIC_URL` when that is set, otherwise from the request UserCue received. Set `PUBLIC_URL` to the exact origin customers use, with `https://` and no trailing path, before you copy the URL. If the console and UserCue disagree by even a slash or a www, the provider rejects the login.
+
+The path is different per provider: `github`, `discord`, or `google`.
+
+## The two checkboxes
+
+Enable this method puts the button on both sign-in pages. Off hides the button. Saved credentials stay until you remove the provider.
+
+Allow new team accounts is only about the workspace login.
+
+- Off, which is the default: someone can use this provider on `/login` only if their email or their provider account is already linked to a UserCue user. Otherwise they see "No team account is linked to this login." Use this when staff are invited, and a random GitHub user should not become staff.
+- On: a brand new person who uses this provider on `/login` is created as Staff and sent to the workspace. Turn this on only if everyone who can pass that provider's login should join the dashboard.
+
+Public sign-in is separate. On `/signin`, a new person is created as a Member even when "Allow new team accounts" is off. Members can post and comment as themselves. They do not get Dashboard access.
+
+If the provider does not return an email, UserCue cannot create the account. GitHub, Discord, and Google are asked for email. The person still has to grant it.
+
+## What a successful login does
+
+UserCue exchanges the code, finds an existing user by the provider account or by email, or creates one as described above. It stores the link between that provider account and the user, starts a session cookie, and updates the name and avatar from the provider. Then it sends workspace logins to `/admin` and board logins back to the board.
+
+A denied or expired attempt returns to the sign-in page with the error. The state cookie lasts 10 minutes.
+
+## Provider guides
+
+The consoles differ. The UserCue side is the same: paste the redirect URL, then paste the client ID and secret back.
+
+- [GitHub](/oauth/github)
+- [Discord](/oauth/discord)
+- [Google](/oauth/google)
+
+## What to read next
+
+- [Settings](/settings) is where authentication is configured.
+- [Environment variables](/getting-started/environment) explains `PUBLIC_URL` and `SECRET_KEY`.

@@ -1,0 +1,33 @@
+---
+title: Settings
+description: Which settings exist, and which permission opens each tab.
+sidebarTitle: Settings
+---
+
+![Paddlewheel Settings page](/images/Paddlewheel-Settings.png "Paddlewheel Settings page")
+
+Settings is `/admin/settings`. The link shows in the sidebar only if you can open at least one tab.
+
+The page header says what the section is for: who can leave feedback, and who can triage it. The tabs under that are not all available to every staff member. UserCue hides a tab you cannot use, and if you open its URL directly you are sent to a tab you can use.
+
+| Tab | Who can open it | What it changes |
+| --- | --- | --- |
+| [General](/settings/general) | Workspace settings, or Manage staff for the invite section only | Accent color, guest posting, assignment, invite email, and staff invites |
+| [Tags](/boards/tags) | Manage posts, or Workspace settings | The tag list: names and colors |
+| [Authentication](/oauth) | Workspace settings | GitHub, Discord, and Google |
+| [Users](/settings/users) | Manage users | Registered accounts: role, suspend, delete |
+| [Roles](/settings/roles) | Manage roles | Role names, icons, and permissions |
+
+Someone with only Manage posts can open Settings, but they only see Tags. Someone with only Manage staff sees General, and on that page they only see the Staff section. Color, guests, assignment, and invite email stay hidden without Workspace settings.
+
+Owner can open all of them. The default Staff role cannot. Give Staff the extra permissions on the Roles tab if they should.
+
+Nothing in Settings is per person except the staff list itself. Color, guests, assignment, tags, and sign-in apply to the whole workspace, including the public board.
+
+## What to read next
+
+- [General](/settings/general) covers accent color, guest posting, assignment, and invite email.
+- [Staff invites](/settings/staff) explains how to invite people to the workspace.
+- [Roles](/settings/roles) explains permissions and built-in roles.
+- [Users](/settings/users) explains how to suspend or delete accounts.
+- [Authentication](/oauth) explains GitHub, Discord, and Google sign-in.

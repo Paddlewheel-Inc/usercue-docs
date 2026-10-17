@@ -1,0 +1,259 @@
+---
+title: Install UserCue
+description: What you need and how to run UserCue on a VPS with one command, on your own machine, or with Docker.
+sidebarTitle: Installation
+author: tiago
+---
+
+UserCue is two pieces: an API server and a web app. They run together from the same codebase.
+
+There are four ways to run it. If you just want a working instance on a server, use Option 1.
+
+| Option | Best for |
+| --- | --- |
+| [1. One-command VPS install](#option-1-one-command-install-on-a-vps) | Running UserCue for real on a fresh server |
+| [2. Your own machine, without Docker](#option-2-run-on-your-own-machine-without-docker) | Trying it out or developing locally |
+| [3. Docker](#option-3-run-with-docker) | Running it yourself with Docker, your own way |
+| [4. Docker with a public tunnel](#option-4-run-with-docker-and-a-public-tunnel) | Testing OAuth or sharing a dev build |
+
+## Option 1: One-command install on a VPS
+
+The install script sets up everything on a fresh Linux server: Docker, your secrets, automatic HTTPS, and UserCue itself.
+
+You need:
+
+- A Linux VPS you can run commands on as root. Debian and Ubuntu are the main targets, and other distributions work through Docker's own installer.
+- At least 1 GB of RAM. On servers with less than 2 GB and no swap, the script adds a 2 GB swap file so the build is not killed.
+- A domain name, if you want HTTPS. Without one, UserCue runs over plain HTTP on the server's IP address.
+
+### 1. Point your domain at the server
+
+Skip this step if you do not have a domain yet.
+
+In your DNS provider, add an **A record** for the address you want to use:
+
+| Field | Value |
+| --- | --- |
+| Type | `A` |
+| Name | The subdomain, such as `feedback` for `feedback.example.com` |
+| Value | Your server's public IP address |
+
+Check that it has propagated before you continue:
+
+```bash
+dig +short feedback.example.com
+```
+
+The output should be your server's IP address.
+
+<Callout type="warning" title="Using Cloudflare?">
+  Set the record to **DNS only** (grey cloud) until the install finishes and the certificate is issued. You can turn the proxy back on afterwards, but then set the SSL mode to **Full (strict)** or you will get redirect loops.
+</Callout>
+
+### 2. Run the installer
+
+Connect to your server and run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Paddlewheel-Inc/usercue/main/deploy.sh | sudo bash -s -- --domain feedback.example.com
+```
+
+Replace `feedback.example.com` with your own domain. If you leave out `--domain`, the script asks for one. Press Enter at the prompt to run on `http://<server-ip>:3000` instead.
+
+The first install builds the app on your server, so it can take a few minutes.
+
+### 3. Create the owner account
+
+When the script finishes, it prints the URL. Open it. The first visit sends you to `/setup`, where you create the owner account.
+
+<Callout type="warning" title="Do not skip the owner setup">
+  The first account you create becomes the Owner. That role is locked and includes every permission. Keep its email and password somewhere safe — there is no way to reset the owner's role from outside the workspace.
+</Callout>
+
+### What the script does
+
+- Installs Docker, git, and curl if they are missing.
+- Adds a swap file on low-memory servers.
+- Downloads UserCue to `/opt/usercue`.
+- Creates a `.env` file with random values for `POSTGRES_PASSWORD` and `SECRET_KEY`, and sets `PUBLIC_URL` and `COOKIE_SECURE` for your domain.
+- With a domain: checks that DNS points at the server, then adds [Caddy](https://caddyserver.com) in front of UserCue to get and renew your HTTPS certificate automatically.
+- Opens the needed ports if `ufw` is active.
+- Starts everything and waits until UserCue responds. If it does not, the script prints the app logs.
+
+Because the script sets `PUBLIC_URL`, `COOKIE_SECURE`, and `SECRET_KEY` for you, you can skip the checklist in [Before you show it to customers](#before-you-show-it-to-customers) for those three settings.
+
+<Callout type="info" title="Back up your .env file">
+  `/opt/usercue/.env` holds your `SECRET_KEY`. It encrypts OAuth secrets and webhook URLs in the database, and if you lose it, those values cannot be read again. Copy the file somewhere safe after the install.
+</Callout>
+
+### Options
+
+Pass these after `bash -s --`:
+
+| Option | Description |
+| --- | --- |
+| `--domain <host>` | Your public domain. Turns on automatic HTTPS. |
+| `--port <number>` | Port for plain-HTTP mode. Default `3000`. |
+| `--dir <path>` | Install directory. Default `/opt/usercue`. |
+| `--branch <name>` | Git branch or tag to deploy. Default `main`. |
+| `--yes`, `-y` | Never ask questions. Use defaults. |
+| `--force`, `-f` | Continue even if the domain does not point at this server yet. |
+| `--help`, `-h` | Show the options. |
+
+Each option also has an environment variable: `USERCUE_DOMAIN`, `USERCUE_PORT`, `USERCUE_DIR`, and `USERCUE_BRANCH`.
+
+Because of how pipes work, set environment variables on the `bash` side of the command, not in front of `curl`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Paddlewheel-Inc/usercue/main/deploy.sh | sudo env NO_COLOR=1 bash -s -- --domain feedback.example.com
+```
+
+`NO_COLOR=1` turns off colored output. Setting `USERCUE_DOMAIN=...` in front of `curl` has no effect, so use the flags if you are not sure.
+
+### Upgrade
+
+Run the same install command again. The script updates the code, rebuilds, and restarts UserCue. It keeps your existing `.env`, so your secrets and data are not touched.
+
+### Manage your install
+
+Run these from `/opt/usercue`:
+
+```bash
+docker compose logs -f app      # view UserCue logs
+docker compose logs -f caddy    # view HTTPS certificate logs
+docker compose restart          # restart
+docker compose down             # stop
+```
+
+### Troubleshooting
+
+**The script stops with "resolves to ... but this server is ..."**
+Your domain does not point at the server yet. Add or fix the A record and wait for it to propagate (check with `dig +short your.domain`). If you want to install anyway and fix DNS afterwards, add `--force`. Caddy keeps retrying until DNS is correct.
+
+**Caddy fails to start with "address already in use"**
+Another program, usually a web server such as Apache or nginx, is using port 80 or 443. Find it with:
+
+```bash
+sudo ss -tlnp | grep -E ':(80|443) '
+```
+
+Stop it (for example `sudo systemctl disable --now httpd`), then run `docker compose up -d` from `/opt/usercue`.
+
+**The certificate is not issued ("Timeout during connect")**
+Let's Encrypt must be able to reach your server on ports 80 and 443 from the internet. Check that:
+
+- Your server's firewall allows both ports. The script opens them for `ufw`. On systems with `firewalld` (Fedora, RHEL, Rocky), run:
+
+  ```bash
+  sudo firewall-cmd --permanent --add-service=http --add-service=https
+  sudo firewall-cmd --permanent --add-port=443/udp
+  sudo firewall-cmd --reload
+  ```
+
+- Your provider's own firewall or security group, if it has one, allows them too.
+- You are not on a home or mobile connection behind CGNAT. In that case nobody can connect to your server from the internet, whatever you forward. Use a VPS, or a tunnel such as Cloudflare Tunnel.
+
+**"Found a Postgres volume from a previous install"**
+An earlier install left a database behind, and its password does not match the new `.env`. The script asks before deleting it. Answer `y` for a fresh start. Answer `n` to keep the old data, then restore the original `.env` and run the script again.
+
+## Option 2: Run on your own machine (without Docker)
+
+You need:
+
+- [Bun](https://bun.com) — to install dependencies and run the app
+- [PostgreSQL](https://www.postgresql.org) — version 17 or newer (Docker uses version 17)
+
+The app creates the `usercue` database and role on first boot if they are missing, so you do not have to set them up by hand.
+
+This is the fastest way to try UserCue locally.
+
+1. Install dependencies. Open a terminal in the folder that contains `package.json` and run:
+
+   ```bash
+   bun install
+   ```
+
+   This installs the server, the web app, and the shared package.
+
+2. Start PostgreSQL. Make sure it is running on your machine and listening on port `5432`.
+
+3. Copy the example env file:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Open `.env` and fill in the values you need. The database connection string goes in `DATABASE_URL`.
+
+4. Run the app:
+
+   ```bash
+   bun run dev
+   ```
+
+   The API is at `http://localhost:3000` and the web app is at `http://localhost:5173`.
+
+Visit `http://localhost:5173`. The first visit sends you to `/setup`, where you create the owner account. The owner account gets every permission and cannot be locked out.
+
+## Option 3: Run with Docker
+
+Docker bundles Postgres and the app together so you do not install them separately. Use this if you want to manage the setup yourself instead of using the install script.
+
+1. Copy the env file:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Open `.env` and set at least `PUBLIC_URL` to the address people will open, such as `https://feedback.example.com`.
+
+2. Start everything:
+
+   ```bash
+   docker compose up --build
+   ```
+
+   Postgres starts on port `5432` and the app on port `3000`.
+
+<Callout type="info" title="Docker compose file">
+  This uses `docker-compose.yml` at the repo root. For a dev setup with live-reloading and port `5173`, use:
+
+  ```bash
+  docker compose -f docker-compose.dev.yml up --build
+  ```
+</Callout>
+
+## Option 4: Run with Docker and a public tunnel
+
+If you want to test OAuth or show the board to someone else without deploying, you can expose the dev server through Cloudflare Tunnel.
+
+```bash
+docker compose -f docker-compose.dev.yml --profile tunnel up --build
+```
+
+<Callout type="warning" title="Tunnel needs a token">
+  Set `CLOUDFLARE_TUNNEL_TOKEN` in `.env` first. Without it, the tunnel service fails to start. Get the token from your Cloudflare Zero Trust dashboard.
+</Callout>
+
+## Before you show it to customers
+
+A few things are worth deciding before anyone else uses the board:
+
+- Set `PUBLIC_URL` to the real origin customers use, including `https://` and no trailing path. OAuth redirect URLs are built from it, and they have to match what you registered with GitHub, Discord, or Google. If they do not match, sign-in fails.
+- If you serve the site over HTTPS, set `COOKIE_SECURE=true`. Session cookies are then marked Secure and browsers will not send them over plain HTTP. Leave it `false` for local HTTP.
+- Encrypted data, such as OAuth secrets, is locked by `SECRET_KEY`. Leave it empty in development and a key file is written to `DATA_DIR`. In production, set a long random value so the key survives a new disk. If you lose the key, encrypted secrets cannot be read again.
+- Email staff invites is optional. To send invites by email you need a Resend API key and a verified from address. Without it, you can still copy the invite link by hand.
+
+<Callout type="info" title="Used the install script?">
+  The script already sets `PUBLIC_URL`, `COOKIE_SECURE`, and `SECRET_KEY` for you. You only need to add a Resend API key if you want invite emails.
+</Callout>
+
+<Callout type="warning" title="Keep secrets out of version control">
+  Never commit `.env` with real API keys, secrets, or passwords. `.env` is ignored by git, but `.env.example` is safe to commit because it contains only placeholder values.
+</Callout>
+
+## What to read next
+
+- [Environment variables](/getting-started/environment) explains each setting in `.env`.
+- [Quickstart](/getting-started) walks through creating the owner account, adding a board, and inviting staff.
+- [OAuth](/oauth) explains connecting GitHub, Discord, and Google sign-in.

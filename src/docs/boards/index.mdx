@@ -1,0 +1,37 @@
+---
+title: Boards
+description: How boards group suggestions, and what happens when you rename one.
+sidebarTitle: Boards
+---
+
+A board is a list of suggestions with its own name and public URL. Feature requests and Bugs are the usual split. One board is enough if everything belongs in the same pile.
+
+The public home page shows the first board. When there is more than one, the board names appear as tabs, and each board also has a direct link.
+
+## Create a board
+
+You need the Manage boards permission. Owner and Staff have it by default.
+
+In the workspace sidebar, under Boards, choose New board. Type a name, up to 40 characters, and submit. The name has to contain at least one letter or number. UserCue turns it into a slug: lowercase, with spaces and punctuation replaced by hyphens. `Feature requests` becomes `feature-requests`, and the public page is `/board/feature-requests`.
+
+Two boards cannot share a slug. If the name would produce a slug that already exists, creation fails.
+
+## Rename a board
+
+Hover a board in the sidebar, or use the pencil on the selected board. Type the new name and press Enter. Escape cancels.
+
+The slug does not change. Old links, filters, and the roadmap card that points at that board keep working. Only the label changes, on the public tabs and in the workspace.
+
+The colored dot next to the name is derived from the current name, so a rename can change the dot color. It does not change which suggestions are on the board.
+
+## What a board does not do
+
+Deleting a board is not available from the sidebar. Suggestions stay on the board they were posted to. Status, tags, and assignment are per suggestion, not per board.
+
+Staff can filter the inbox by board. The public roadmap mixes every board into the same three lanes, and each card shows which board it came from.
+
+## What to read next
+
+- [Suggestions](/boards/suggestions) are the items posted to a board.
+- [Tags](/boards/tags) label suggestions for easier scanning.
+- [Roadmap](/workspace/roadmap) shows what is planned, in progress, and done.

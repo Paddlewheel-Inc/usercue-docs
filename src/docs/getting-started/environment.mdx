@@ -1,0 +1,58 @@
+---
+title: Environment variables
+description: What each setting in `.env` does, in plain language.
+sidebarTitle: Environment
+author: tiagos
+---
+
+Environment variables live in a file called `.env` at the repo root. Copy `.env.example` to `.env` and change the values you need. The app reads them when it starts.
+
+## The ones you will almost always touch
+
+| Variable | What it does | Example |
+| --- | --- | --- |
+| `PORT` | The port the API listens on. In dev, the web app sends `/api` requests here. | `3000` |
+| `DATABASE_URL` | The address of your Postgres database. The app creates the `usercue` role and database if they are missing. | `postgres://usercue:usercue@localhost:5432/usercue` |
+| `DATA_DIR` | Where uploaded images and the encryption key file are stored. The folder is created on startup. | `data` |
+| `PUBLIC_URL` | The address people actually open, such as `https://feedback.example.com`. OAuth redirect URLs are built from this. | `https://feedback.example.com` |
+
+## Security-related variables
+
+| Variable | What it does | Example |
+| --- | --- | --- |
+| `COOKIE_SECURE` | Set to `true` only when the site is served over HTTPS. Then session cookies are marked Secure, so browsers will not send them over plain HTTP. | `false` |
+| `SECRET_KEY` | Locks encrypted data, such as OAuth client secrets. Leave it empty in development and a key file is written to `DATA_DIR`. In production, set a long random value so the key survives a new disk. | _(leave empty for dev)_ |
+
+## Optional email for staff invites
+
+| Variable | What it does | Example |
+| --- | --- | --- |
+| `RESEND_API_KEY` | Lets UserCue email staff invite links through Resend. The settings page is the better place for this; this variable is used only when settings do not already have a key and from address. | _(your Resend key)_ |
+| `RESEND_FROM` | The "from" address for invite emails, such as `UserCue <noreply@yourdomain.com>`. The domain must be verified in Resend or sending fails. | `UserCue <noreply@example.com>` |
+
+## Optional tunnel
+
+| Variable | What it does | Example |
+| --- | --- | --- |
+| `CLOUDFLARE_TUNNEL_TOKEN` | Exposes the dev server through Cloudflare Tunnel so you can test OAuth or share a link without deploying. Run with `bun docker:dev:tunnel`. | _(token from Cloudflare)_ |
+
+<Callout type="warning" title="PUBLIC_URL must match your OAuth console">
+  GitHub, Discord, and Google check the redirect URL against what you registered with them. Host, scheme (`https://`), and path all have to match exactly. If `PUBLIC_URL` is wrong, sign-in fails with a redirect mismatch.
+</Callout>
+
+<Callout type="warning" title="Do not lose SECRET_KEY in production">
+  If you set `SECRET_KEY` and then lose it, the encrypted OAuth secrets cannot be read again. Keep it backed up somewhere safe.
+</Callout>
+
+<Callout type="warning" title="Keep secrets out of version control">
+  Never commit `.env` with real keys or passwords. `.env` is ignored by git. `.env.example` is safe to commit because it contains only placeholder values.
+</Callout>
+
+## Where each variable is used
+
+- `PORT`, `DATABASE_URL`, `DATA_DIR`, `COOKIE_SECURE`, `SECRET_KEY`, `PUBLIC_URL`, `RESEND_API_KEY`, `RESEND_FROM` — read by the API server.
+- `PORT` and `PUBLIC_URL` — also used by the web app in dev to know where to send API requests.
+
+## To see all defaults
+
+Look at `.env.example` in the repo. Lines starting with `#` are comments explaining each variable. Lines like `PORT=3000` are the defaults used when the variable is not set.

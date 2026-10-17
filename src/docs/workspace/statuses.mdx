@@ -1,0 +1,51 @@
+---
+title: Statuses and assignment
+description: What each status means, how the activity log works, and the three assignment modes.
+sidebarTitle: Statuses
+author: brennanp
+---
+
+Every suggestion has one status.
+
+| Status | Meaning |
+| --- | --- |
+| Open | New, or not yet committed. This is the default. It stays on the feedback board and off the roadmap. |
+| Planned | You intend to do it. It appears on the roadmap. If assignment is Automatic, this is the moment someone is assigned. |
+| In Progress | Work has started. It appears on the roadmap and under On stage on Overview. |
+| Complete | Shipped. It stays on the roadmap in the Complete lane. |
+| Closed | It will not be done, or it no longer applies. It leaves the roadmap. On the suggestion, the status road shows Closed in place of Complete. |
+
+Staff with Manage posts change the status from the suggestion. Customers cannot.
+
+## The status road and the activity log
+
+The hearts beside a suggestion are only the status. They show how far it has moved: Open, Planned, In Progress, then Complete or Closed. They do not name a person.
+
+The activity log under the suggestion is the record. Each line is a staff avatar, their name, and the status they set, in order. The first Open, created with the suggestion itself, is left out of that list so the log starts at the first real change.
+
+## Assignment
+
+Assignment is a workspace setting, not a per-board setting. It lives in General settings. There are three modes.
+
+<AccordionGroup>
+  <Accordion title="Off">
+    Nobody can be assigned. The assignee control is hidden on every suggestion, including for staff. Existing assignees are left as they are, but you cannot set or change one while the mode is off.
+  </Accordion>
+  <Accordion title="Manual">
+    Staff with Manage posts pick a person, or clear the assignee. The list is dashboard staff who are not suspended. Customers still do not see a picker. They can see who is assigned when someone is set.
+  </Accordion>
+  <Accordion title="Automatic">
+    UserCue assigns on its own when a suggestion becomes Planned. It walks the eligible staff in a fixed order, remembers the last person it used, and gives the next Planned suggestion to the next person. After the last person, it starts over.
+
+    Eligible means: not suspended, and their role includes Dashboard. Changing the status to Planned again later assigns again. Other status changes do not.
+
+    You cannot override the assignee by hand in this mode. The control shows the current person and does not open a menu. To pick people yourself, switch the workspace to Manual.
+  </Accordion>
+</AccordionGroup>
+
+Removing someone from staff, or suspending them, takes them out of the automatic rotation. It does not rewrite suggestions they were already assigned.
+
+## What to read next
+
+- [General settings](/settings/general) is where assignment mode is configured.
+- [Workspace](/workspace) is the staff home and inbox.

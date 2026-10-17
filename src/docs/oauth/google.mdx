@@ -1,0 +1,32 @@
+---
+title: Google
+description: Create a Google OAuth client and connect it to UserCue.
+sidebarTitle: Google
+author: brennanp
+---
+
+Google sign-in uses an OAuth client from [Google Cloud credentials](https://console.cloud.google.com/apis/credentials). UserCue asks for `openid`, `email`, and `profile`. The consent screen includes an account picker, so someone with several Google accounts can choose which one to use.
+
+<Steps>
+  <Step title="Configure the consent screen">
+    In the same Google Cloud project, set up the OAuth consent screen. External is what you want if customers sign in. While the app is in testing, only accounts you list as test users can complete login. Publish the app when you want anyone with a Google account to get through.
+  </Step>
+  <Step title="Create the client">
+    Create an OAuth client ID of type Web application. Google calls the redirect field Authorized redirect URIs. Paste the URL from the UserCue Google card. It ends in `/api/auth/oauth/google/callback`. You can add a second URI for local development, such as `http://localhost:5173/api/auth/oauth/google/callback`, if `PUBLIC_URL` points there. Each origin you use needs its own URI.
+  </Step>
+  <Step title="Copy the credentials">
+    Google shows the client ID and client secret on the client. Copy both.
+  </Step>
+  <Step title="Save it in UserCue">
+    Paste them into the Google card. Enable the method. Leave Allow new team accounts off unless a Google login should create staff by itself. Save.
+  </Step>
+</Steps>
+
+If Google returns `redirect_uri_mismatch`, the URI in the console is not the one UserCue sent. Check `PUBLIC_URL`, then the card, then the console. They have to be the same string.
+
+Google will not issue a refresh of the name and avatar until the next sign-in. UserCue updates them at that point.
+
+## What to read next
+
+- [OAuth](/oauth) explains how sign-in works across providers.
+- [Settings](/settings) is where authentication is configured.

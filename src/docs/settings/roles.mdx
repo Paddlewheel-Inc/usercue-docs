@@ -1,0 +1,52 @@
+---
+title: Roles
+description: What each permission allows, and how the built-in roles differ from ones you add.
+sidebarTitle: Roles
+author: brennanp
+---
+
+![Roles list in Settings](/images/CleanShot-2026-10-13-at-9.40.47-PM@2x.png "Roles list in Settings")
+
+Roles decide what an account can do. You need Manage roles to create or edit them. You need Manage users to put a role on a person.
+
+A role is a name, an optional icon, and a set of permissions. The icon shows as a small badge next to the name on suggestions and comments when that person is staff.
+
+## Built-in roles
+
+| Role | Permissions | Notes |
+| --- | --- | --- |
+| Owner | All of them | Locked. Created with the workspace. |
+| Staff | Dashboard, Manage posts, Manage boards | Given to people you invite. |
+| Member | None | Given to people who sign in on the public board. |
+
+Owner cannot be edited into a weaker role. Staff and Member can be edited, but changing Staff changes every person who has that role. If you want a narrower teammate, make a new role instead of stripping Staff.
+
+## Permissions
+
+| Permission | Allows |
+| --- | --- |
+| Dashboard | Open the workspace and the inbox. Without this, `/admin` sends them back to the board. |
+| Manage posts | Change status, edit, delete, apply tags, and assign when assignment is manual. |
+| Manage boards | Create and rename boards. |
+| Workspace settings | Color, guest posting, assignment, invite email, and authentication. |
+| Manage users | See accounts, change their role, suspend, and delete. |
+| Manage roles | Create roles and edit their permissions. |
+| Manage staff | Invite people to the workspace and remove staff. |
+
+Permissions combine. A person needs Dashboard before the rest of the workspace is useful, even if they have Manage posts. Settings tabs check their own permission, so Manage posts alone can still open the Tags tab.
+
+Automatic assignment includes anyone whose role has Dashboard and who is not suspended. It does not require Manage posts. A person who can see the inbox but cannot edit suggestions can still be assigned work.
+
+## Creating a role
+
+![Creating a new role in Settings](/images/CleanShot-2026-10-13-at-9.41.11-PM@2x.png "Creating a new role in Settings")
+
+Name it, optionally upload an icon, and tick the permissions. Save. Then set that role on the people who should have it, from Users.
+
+Deleting a role does not delete those people. Move them to another role first if you still want them to have access.
+
+## What to read next
+
+- [Users](/settings/users) explains how to assign roles to accounts.
+- [Staff invites](/settings/staff) explains how to invite people to the workspace.
+- [Statuses and assignment](/workspace/statuses) explains how assignment works.

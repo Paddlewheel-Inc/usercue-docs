@@ -1,0 +1,63 @@
+---
+title: General
+description: Accent color, guest posting, assignment, and invite email.
+sidebarTitle: General
+author: brennanp
+---
+
+General is the first settings tab. You need Workspace settings for color, guests, assignment, and email. Manage staff is enough for the [Staff](/settings/staff) section at the bottom, and nothing else on this page.
+
+Changes to color, guests, and assignment save as soon as you select them. Invite email has its own Save button, because the API key should not be sent on every click.
+
+## Color
+
+![Accent color picker in Settings](/images/CleanShot-2026-10-13-at-9.38.51-PM@2x.png "Accent color picker in Settings")
+
+The accent is the color on buttons, links, vote counts, and the workspace hearts that use the brand color. Status hearts keep their own colors (stone, sky, violet, green, rose) so a status stays recognizable when you change the accent.
+
+Pink is the default. The other choices are Rose, Coral, Amber, Green, Teal, Blue, and Violet. There is no custom hex field. Pick one of those.
+
+The color is stored on the workspace. Public pages and the staff workspace both use it. Switching color animates. Reloading the page does not replay that animation.
+
+Light and dark mode is not here. Each person toggles that in the header, or at the bottom of the workspace sidebar. It stays on their browser.
+
+## Feedback
+
+Allow guests to post feedback without signing in.
+
+On: a visitor types a name and can post a suggestion or a comment. No account is created.
+
+Off: the form refuses until they sign in with a provider you have enabled. If no provider is enabled, they see that sign-in is required and cannot post. Staff are unaffected. They are already signed in.
+
+This switch does not delete old guest posts. It only changes what new posts and comments require.
+
+## Assignment
+
+![Assignment mode selector in Settings](/images/CleanShot-2026-10-13-at-9.39.17-PM@2x.png "Assignment mode selector in Settings")
+
+This is the workspace-wide rule for who is responsible for a suggestion. The three modes are Off, Manual, and Automatic. What each one does on a suggestion is written up in [Statuses and assignment](/workspace/statuses).
+
+Short version:
+
+- Off hides assignment. Nobody can be assigned.
+- Manual lets staff pick a person from the people who can open the workspace and are not suspended.
+- Automatic assigns the next person in that same list when a suggestion becomes Planned, then moves to the following person the next time.
+
+Switching modes does not clear assignees already set.
+
+## Invite email
+
+Staff invites always produce a registration link you can copy. Emailing that link is optional.
+
+To send it, turn on Email staff invites with Resend and save a from address plus an API key.
+
+The from address looks like `UserCue <noreply@yourdomain.com>`. The domain has to be verified in Resend or the send fails. The registration link is still created, and Settings shows a warning when the email does not go out.
+
+The API key is encrypted before it is stored. The page never shows the key again. It shows a short SHA-256 prefix so you can tell that a key is saved. Leave the key field blank and save to keep the current key. You can also set `RESEND_API_KEY` and `RESEND_FROM` in the server environment. If no key has been saved in Settings, UserCue uses those. A key saved in Settings takes over from the environment.
+
+Turn the checkbox off if you want to hand out links yourself and not send mail.
+
+## What to read next
+
+- [Staff invites](/settings/staff) explains how to invite people to the workspace.
+- [Statuses and assignment](/workspace/statuses) explains the three assignment modes.
