@@ -1,36 +1,146 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="left">
 
-## Getting Started
+  <img src="https://cdn.paddlewheel.org/brand/brandfull.svg" height="25px"/>
 
-First, run the development server:
+</div>
+
+# usercue-docs — Documentation Site
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js-black.svg?logo=next.js)](https://nextjs.org)
+[![Bun](https://img.shields.io/badge/Bun-black.svg?logo=bun)](https://bun.sh)
+
+**usercue-docs** is the official documentation site for **Usercue**, an open-source feedback board tool for teams. It is built with Next.js and Fumadocs, served via Bun, and deployed to the web — covering getting started, settings, OAuth setup, boards, and workspace guides.
+
+---
+
+## Getting started
+
+### Prerequisites
+
+- [Bun](https://bun.sh) ≥ 1.4
+
+### Installation
+
+1. Clone this repository:
+
+   ```bash
+   git clone https://github.com/Paddlewheel-Inc/usercue-docs.git
+   cd usercue-docs
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   bun install
+   ```
+
+3. Start the development server:
+
+   ```bash
+   bun dev
+   ```
+
+   The site will be available at `http://localhost:3000`.
+
+> [!TIP]
+> No environment variables are required. Run `bun run build && bun start` to serve the production build locally before deploying.
+
+---
+
+## Scripts
+
+| Command           | Description                                |
+| ----------------- | ------------------------------------------ |
+| `bun dev`         | Start the dev server with HMR              |
+| `bun run build`   | Build for production                       |
+| `bun start`       | Serve the production build                 |
+| `bun run lint`    | Check code with Biome                      |
+| `bun run format`  | Format code with Biome                     |
+
+---
+
+## Docker
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker build -t usercue-docs .
+docker run -p 3000:3000 usercue-docs
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Contributing
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Contributions are welcome — whether it's fixing a typo, adding a page, or reporting a bug.
 
-## Learn More
+Before opening a pull request:
 
-To learn more about Next.js, take a look at the following resources:
+1. Run `bun run lint` and confirm there are no errors.
+2. Keep changes small and focused.
+3. Add new docs as `.mdx` files inside `src/docs/` — they appear on the site automatically.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Found a bug or have an idea? [Open an issue](https://github.com/Paddlewheel-Inc/usercue-docs/issues), or chat with us on [Discord](https://discord.gg/7e4jd9Mcaa).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Tech stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Layer         | Technology                                             |
+| ------------- | ------------------------------------------------------ |
+| Framework     | [Next.js 16](https://nextjs.org)                       |
+| Docs engine   | [Fumadocs](https://fumadocs.dev) (MDX)                |
+| Runtime       | [Bun](https://bun.sh)                                  |
+| Styling       | [Tailwind CSS v4](https://tailwindcss.com)             |
+| Components    | [Base UI](https://base-ui.com) · Lucide icons          |
+| Linting       | [Biome](https://biomejs.dev)                           |
+| Language      | TypeScript                                             |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Repository structure
+
+```
+usercue-docs/
+├── src/
+│   ├── docs/              # All docs pages (one .mdx file per page)
+│   ├── app/               # Next.js app router (routes, API)
+│   ├── components/        # Shared UI (MDX, TOC, sidebar, etc.)
+│   ├── layouts/           # Page layouts
+│   └── lib/               # Helpers (source, urls, hotkey, etc.)
+├── public/                # Static assets
+├── Dockerfile             # Bun-based production image
+├── next.config.ts         # Next.js + Fumadocs config
+└── package.json
+```
+
+### Docs sections
+
+| Section              | Path                         |
+| -------------------- | ---------------------------- |
+| Getting Started      | `src/docs/getting-started/`  |
+| Settings             | `src/docs/settings/`         |
+| OAuth                | `src/docs/oauth/`            |
+| Boards               | `src/docs/boards/`           |
+| Workspace            | `src/docs/workspace/`        |
+
+---
+
+## Changelog
+
+See [GitHub Releases](https://github.com/Paddlewheel-Inc/usercue-docs/releases) for the changelog.
+
+---
+
+## Ownership, copyright, and licence
+
+All content, design, and code in this repository are the property of **Paddlewheel Inc** and are protected by applicable copyright laws.
+
+The **Paddlewheel** name and associated branding are protected by applicable trademark and intellectual property laws. Unauthorised use, reproduction, or misrepresentation of Paddlewheel branding or repository contents is not permitted without prior written consent.
+
+This project is open-source software licensed under the [MIT License](./LICENSE).
+
+---
+
+<div align="center">
+  <sub>Maintained by <a href="https://github.com/Paddlewheel-Inc">Paddlewheel Inc</a></sub>
+</div>
