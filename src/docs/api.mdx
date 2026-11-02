@@ -41,7 +41,7 @@ A key can use only the permissions selected for that key and currently held by i
 effective permissions = key permissions ∩ owner's current role permissions
 ```
 
-Changing the owner’s role takes effect immediately. The key cannot add privileges, including through API-key creation or permission updates. Create and manage keys requires `manage_settings`; a key used to create another key must itself have `manage_settings`.
+Changing the owner’s role takes effect immediately. The key cannot add privileges, including through API-key creation or permission updates. Anyone who can access a Settings tab can manage their own API keys: this requires at least one of `manage_settings`, `manage_staff`, `manage_branding`, `manage_posts`, `manage_users`, or `manage_roles`. The key used for API-key management must itself have at least one of these permissions in its effective scope.
 
 Permission IDs:
 
@@ -50,7 +50,7 @@ Permission IDs:
 | `dashboard` | Staff workspace, changelog management, and staff-only post-comment deletion |
 | `manage_posts` | Edit or delete posts and manage tags |
 | `manage_boards` | Create, rename, and delete boards |
-| `manage_settings` | Change general settings, manage API keys, and configure sign-in providers |
+| `manage_settings` | Change general settings and configure sign-in providers |
 | `manage_branding` | Change workspace branding |
 | `manage_users` | View, change, and delete accounts; also read roles |
 | `manage_roles` | Create, change, reorder, and delete roles; also read roles |
@@ -87,7 +87,7 @@ Error responses generally include an `error` string. Validation responses may in
 | Posts | `GET /posts`, `GET /posts/counts`, `POST /posts`, `GET /posts/:id`, `POST /posts/:id/vote`, `GET /posts/:id/voters`, `POST /posts/:id/comments`, `DELETE /posts/:id/comments/:commentId`, `PATCH /posts/:id`, `DELETE /posts/:id` | Read and public interactions: API key; comment deletion: `dashboard`; post updates/deletion: `manage_posts` |
 | Tags | `GET /tags`, `POST /tags`, `PATCH /tags/:id`, `DELETE /tags/:id` | Read: API key; write: `manage_posts` or `manage_settings` |
 | Settings | `GET /settings`, `PATCH /settings`, `PATCH /settings/branding` | `dashboard`, `manage_settings`, `manage_branding` respectively |
-| API keys | `GET /settings/api-keys`, `POST /settings/api-keys`, `PATCH /settings/api-keys/:id`, `DELETE /settings/api-keys/:id` | `manage_settings`; keys are scoped to their owner |
+| API keys | `GET /settings/api-keys`, `POST /settings/api-keys`, `PATCH /settings/api-keys/:id`, `DELETE /settings/api-keys/:id` | Any Settings permission (`manage_settings`, `manage_staff`, `manage_branding`, `manage_posts`, `manage_users`, or `manage_roles`); keys are scoped to their owner |
 | Users | `GET /settings/users`, `PATCH /settings/users/:id`, `DELETE /settings/users/:id` | `manage_users`; changing a role additionally requires `manage_roles` |
 | Roles | `GET /settings/roles`, `POST /settings/roles`, `PATCH /settings/roles/order`, `PATCH /settings/roles/:id`, `DELETE /settings/roles/:id` | Read: `manage_roles` or `manage_users`; write: `manage_roles` |
 | Staff | `POST /settings/invites`, `DELETE /settings/invites/:id`, `DELETE /settings/staff/:id` | `manage_staff` |
@@ -412,17 +412,17 @@ All fields are optional. Returns the updated settings snapshot.
 
 ## API-key management
 
-The key-management endpoints require **`manage_settings`** and only show or change keys owned by the authenticated key’s owner. The full token is returned only by key creation.
+The key-management endpoints require at least one permission that grants access to a Settings tab: **`manage_settings`**, **`manage_staff`**, **`manage_branding`**, **`manage_posts`**, **`manage_users`**, or **`manage_roles`**. They only show or change keys owned by the authenticated key’s owner. The full token is returned only by key creation.
 
 ### List keys
 
-`GET /settings/api-keys` — **`manage_settings`**
+`GET /settings/api-keys` — **Any Settings permission**
 
 Returns an array of keys containing `id`, `name`, `prefix`, `permissions`, `createdAt`, `lastModifiedAt`, `lastUsedAt`, and `createdBy` (`name`, `avatarUrl`). `lastUsedAt` is `null` until first use. Full key values are never returned.
 
 ### Create a key
 
-`POST /settings/api-keys` — **`manage_settings`**
+`POST /settings/api-keys` — **Any Settings permission**
 
 ```json
 { "name": "Website integration", "permissions": ["manage_posts"] }
@@ -434,7 +434,7 @@ Returns the key metadata plus `key` exactly once, with HTTP `201`. Save the toke
 
 ### Change key permissions
 
-`PATCH /settings/api-keys/:id` — **`manage_settings`**
+`PATCH /settings/api-keys/:id` — **Any Settings permission**
 
 ```json
 { "permissions": ["manage_posts", "manage_boards"] }
@@ -444,7 +444,7 @@ Returns the key metadata plus `key` exactly once, with HTTP `201`. Save the toke
 
 ### Revoke a key
 
-`DELETE /settings/api-keys/:id` — **`manage_settings`**
+`DELETE /settings/api-keys/:id` — **Any Settings permission**
 
 Returns `{ "ok": true }`. Subsequent requests made with the key are rejected.
 
