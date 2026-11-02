@@ -41,7 +41,7 @@ A key can use only the permissions selected for that key and currently held by i
 effective permissions = key permissions ∩ owner's current role permissions
 ```
 
-Changing the owner’s role takes effect immediately. The key cannot add privileges, including through API-key creation or permission updates. Anyone who can access a Settings tab can manage their own API keys: this requires at least one of `manage_settings`, `manage_staff`, `manage_branding`, `manage_posts`, `manage_users`, or `manage_roles`. The key used for API-key management must itself have at least one of these permissions in its effective scope.
+Changing the owner’s role takes effect immediately. The key cannot add privileges, including through API-key creation or permission updates. Any staff member with `dashboard` access can manage API keys. Keys created through the REST API can grant only permissions in the calling key's effective scope. Owners can see all workspace keys and revoke any of them; other staff members can see and revoke only their own keys.
 
 Permission IDs:
 
@@ -87,7 +87,7 @@ Error responses generally include an `error` string. Validation responses may in
 | Posts | `GET /posts`, `GET /posts/counts`, `POST /posts`, `GET /posts/:id`, `POST /posts/:id/vote`, `GET /posts/:id/voters`, `POST /posts/:id/comments`, `DELETE /posts/:id/comments/:commentId`, `PATCH /posts/:id`, `DELETE /posts/:id` | Read and public interactions: API key; comment deletion: `dashboard`; post updates/deletion: `manage_posts` |
 | Tags | `GET /tags`, `POST /tags`, `PATCH /tags/:id`, `DELETE /tags/:id` | Read: API key; write: `manage_posts` or `manage_settings` |
 | Settings | `GET /settings`, `PATCH /settings`, `PATCH /settings/branding` | `dashboard`, `manage_settings`, `manage_branding` respectively |
-| API keys | `GET /settings/api-keys`, `POST /settings/api-keys`, `PATCH /settings/api-keys/:id`, `DELETE /settings/api-keys/:id` | Any Settings permission (`manage_settings`, `manage_staff`, `manage_branding`, `manage_posts`, `manage_users`, or `manage_roles`); keys are scoped to their owner |
+| API keys | `GET /settings/api-keys`, `POST /settings/api-keys`, `PATCH /settings/api-keys/:id`, `DELETE /settings/api-keys/:id` | Staff (`dashboard`); keys are scoped to their owner, Owners can list and revoke all keys |
 | Users | `GET /settings/users`, `PATCH /settings/users/:id`, `DELETE /settings/users/:id` | `manage_users`; changing a role additionally requires `manage_roles` |
 | Roles | `GET /settings/roles`, `POST /settings/roles`, `PATCH /settings/roles/order`, `PATCH /settings/roles/:id`, `DELETE /settings/roles/:id` | Read: `manage_roles` or `manage_users`; write: `manage_roles` |
 | Staff | `POST /settings/invites`, `DELETE /settings/invites/:id`, `DELETE /settings/staff/:id` | `manage_staff` |
@@ -412,17 +412,17 @@ All fields are optional. Returns the updated settings snapshot.
 
 ## API-key management
 
-The key-management endpoints require at least one permission that grants access to a Settings tab: **`manage_settings`**, **`manage_staff`**, **`manage_branding`**, **`manage_posts`**, **`manage_users`**, or **`manage_roles`**. They only show or change keys owned by the authenticated key’s owner. The full token is returned only by key creation.
+Any staff member with `dashboard` access can manage API keys. Non-Owners can only list, edit, and revoke their own keys. Owners can list all workspace keys and revoke any key, but can edit permissions only on keys they own. The full token is returned only by key creation.
 
 ### List keys
 
-`GET /settings/api-keys` — **Any Settings permission**
+`GET /settings/api-keys` — **Staff (`dashboard`)**
 
-Returns an array of keys containing `id`, `name`, `prefix`, `permissions`, `createdAt`, `lastModifiedAt`, `lastUsedAt`, and `createdBy` (`name`, `avatarUrl`). `lastUsedAt` is `null` until first use. Full key values are never returned.
+Returns an array of keys containing `id`, `ownerId`, `canRevoke`, `name`, `prefix`, `permissions`, `createdAt`, `lastModifiedAt`, `lastUsedAt`, and `createdBy` (`name`, `avatarUrl`). Non-Owners receive their own keys; Owners receive all workspace keys. `canRevoke` indicates whether the caller can revoke the key. `lastUsedAt` is `null` until first use. Full key values are never returned.
 
 ### Create a key
 
-`POST /settings/api-keys` — **Any Settings permission**
+`POST /settings/api-keys` — **Staff (`dashboard`)**
 
 ```json
 { "name": "Website integration", "permissions": ["manage_posts"] }
@@ -434,7 +434,7 @@ Returns the key metadata plus `key` exactly once, with HTTP `201`. Save the toke
 
 ### Change key permissions
 
-`PATCH /settings/api-keys/:id` — **Any Settings permission**
+`PATCH /settings/api-keys/:id` — **Staff key owner**
 
 ```json
 { "permissions": ["manage_posts", "manage_boards"] }
@@ -444,7 +444,7 @@ Returns the key metadata plus `key` exactly once, with HTTP `201`. Save the toke
 
 ### Revoke a key
 
-`DELETE /settings/api-keys/:id` — **Any Settings permission**
+`DELETE /settings/api-keys/:id` — **Staff key owner or workspace Owner**
 
 Returns `{ "ok": true }`. Subsequent requests made with the key are rejected.
 
