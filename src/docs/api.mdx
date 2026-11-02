@@ -308,7 +308,7 @@ Send one or more fields:
 | `assigneeId` | integer or `null` | Positive active staff user ID; `null` clears assignment; assignment must not be Off |
 | `tagIds` | integer array | Positive IDs, at most 8 distinct tags, all must exist |
 
-Status changes are recorded in history and may send workspace notifications. When assignment mode is Automatic, changing status to `planned` can assign the next eligible staff member. Returns the updated post object.
+Status changes are recorded in history and may send workspace notifications. When assignment mode is Automatic, changing status to `planned` can assign the next eligible staff member. All fields are validated before updates are applied; if validation fails, none of the requested changes are saved. Returns the updated post object.
 
 ### Delete a post
 
