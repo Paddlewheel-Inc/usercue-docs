@@ -13,6 +13,7 @@ The page header says what the section is for: who can leave feedback, and who ca
 | Tab | Who can open it | What it changes |
 | --- | --- | --- |
 | [General](/settings/general) | Workspace settings, or Manage staff for the invite section only | Accent color, guest posting, assignment, invite email, and staff invites |
+| API keys | Workspace settings | Create and revoke integration keys and limit their permissions |
 | [Tags](/boards/tags) | Manage posts, or Workspace settings | The tag list: names and colors |
 | [Authentication](/oauth) | Workspace settings | GitHub, Discord, and Google |
 | [Users](/settings/users) | Manage users | Registered accounts: role, suspend, delete |
@@ -22,7 +23,11 @@ Someone with only Manage posts can open Settings, but they only see Tags. Someon
 
 Owner can open all of them. The default Staff role cannot. Give Staff the extra permissions on the Roles tab if they should.
 
+Role changes have an additional permission boundary: changing a user's role requires both Manage users and Manage roles. A role can only grant permissions held by the person creating or editing it. Assigning the Owner role is limited to an Owner with the full permission set. These rules also apply when making changes through the REST API.
+
 Nothing in Settings is per person except the staff list itself. Color, guests, assignment, tags, and sign-in apply to the whole workspace, including the public board.
+
+The [REST API](/api) uses API keys created from the API keys tab. Each key can only use permissions granted to its owner, and role-management actions remain bounded by the caller's effective permissions.
 
 ## What to read next
 
