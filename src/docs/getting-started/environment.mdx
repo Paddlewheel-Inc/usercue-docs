@@ -1,34 +1,82 @@
 ---
 title: Environment variables
-description: What each setting in `.env` does, in plain language.
+description: What each setting in `.env` does, which ones you need in production, and what breaks when one is missing.
 sidebarTitle: Environment
 author: tiagos
 ---
 
-Environment variables live in a file called `.env` at the repo root. Copy `.env.example` to `.env` and change the values you need. The app reads them when it starts.
+Environment variables live in a file called `.env` at the repo root. Copy `.env.example` to `.env` and change the values you need. The app reads them when it starts, so restart after you change one.
 
-## The ones you will almost always touch
+With Docker, pass them in the `environment` block of your service, or with an `env_file`.
+
+## Minimum for production
+
+If you set only these, UserCue runs and is safe to put on the internet.
+
+| Variable | Why |
+| --- | --- |
+| `DATABASE_URL` | Where your data is |
+| `PUBLIC_URL` | Sign-in redirects, links in emails, the digest, [email in](/integrations/email-in), and webhook links all use it |
+| `COOKIE_SECURE=true` | Marks session cookies Secure. Set it whenever you serve over HTTPS |
+| `SECRET_KEY` | Encrypts stored secrets. Keep it backed up |
+| A persistent `DATA_DIR` | Uploads and the key file must survive a redeploy |
+
+## Core
 
 | Variable | What it does | Example |
 | --- | --- | --- |
 | `PORT` | The port the API listens on. In dev, the web app sends `/api` requests here. | `3000` |
 | `DATABASE_URL` | The address of your Postgres database. The app creates the `usercue` role and database if they are missing. | `postgres://usercue:usercue@localhost:5432/usercue` |
 | `DATA_DIR` | Where uploaded images and the encryption key file are stored. The folder is created on startup. | `data` |
-| `PUBLIC_URL` | The address people actually open, such as `https://feedback.example.com`. OAuth redirect URLs are built from this. | `https://feedback.example.com` |
+| `PUBLIC_URL` | The address people actually open, such as `https://feedback.example.com`, with no trailing path. | `https://feedback.example.com` |
 
-## Security-related variables
+### What `PUBLIC_URL` is used for
+
+A request from a browser tells UserCue its own address. A background job, such as the weekly digest, has no request, so it needs `PUBLIC_URL`. Set it and all of these work:
+
+- OAuth redirect URLs for sign-in
+- Links in the [weekly digest](/settings/notifications#weekly-digest) and shipped emails
+- The `url` field in [webhook](/integrations/webhooks) payloads for scheduled changelog entries
+- The [email in](/integrations/email-in) webhook address shown in Settings
+
+If it is missing, UserCue still runs. The features above turn themselves off, and Settings tells you why.
+
+## Security
 
 | Variable | What it does | Example |
 | --- | --- | --- |
 | `COOKIE_SECURE` | Set to `true` only when the site is served over HTTPS. Then session cookies are marked Secure, so browsers will not send them over plain HTTP. | `false` |
-| `SECRET_KEY` | Locks encrypted data, such as OAuth client secrets. Leave it empty in development and a key file is written to `DATA_DIR`. In production, set a long random value so the key survives a new disk. | _(leave empty for dev)_ |
+| `SECRET_KEY` | Locks encrypted data: OAuth client secrets, SMTP and Resend credentials, webhook URLs and secrets, and the AI key. Leave it empty in development and a key file is written to `DATA_DIR`. In production, set a long random value so the key survives a new disk. | _(leave empty for dev)_ |
 
-## Optional email for staff invites
+Generate a key with:
+
+```bash
+openssl rand -hex 32
+```
+
+## Outgoing email
+
+Email sends staff invites, the weekly digest, and shipped alerts. You can configure it here or in [Settings](/settings/notifications#email-delivery). Settings saved in the app win over these variables. If both Resend and SMTP are on, Resend is used.
+
+### Resend
 
 | Variable | What it does | Example |
 | --- | --- | --- |
-| `RESEND_API_KEY` | Lets UserCue email staff invite links through Resend. The settings page is the better place for this; this variable is used only when settings do not already have a key and from address. | _(your Resend key)_ |
-| `RESEND_FROM` | The "from" address for invite emails, such as `UserCue <noreply@yourdomain.com>`. The domain must be verified in Resend or sending fails. | `UserCue <noreply@example.com>` |
+| `RESEND_API_KEY` | Your Resend API key. Also needed for [email in](/integrations/email-in). | _(your Resend key)_ |
+| `RESEND_FROM` | The "from" address, such as `UserCue <noreply@yourdomain.com>`. The domain must be verified in Resend or sending fails. | `UserCue <noreply@example.com>` |
+
+### SMTP
+
+Use SMTP if you have your own mail server or a provider other than Resend.
+
+| Variable | What it does | Example |
+| --- | --- | --- |
+| `SMTP_HOST` | Your mail server | `smtp.postmarkapp.com` |
+| `SMTP_PORT` | Port. Use `587` for STARTTLS or `465` for implicit TLS. Defaults to `587`. | `587` |
+| `SMTP_USER` | Username, if your server needs one | `apikey` |
+| `SMTP_PASS` | Password, if your server needs one | _(your password)_ |
+| `SMTP_FROM` | The "from" address. Falls back to `RESEND_FROM` if empty. | `UserCue <noreply@example.com>` |
+| `SMTP_SECURE` | Set to `true` for implicit TLS, usually with port `465`. | `false` |
 
 ## Optional tunnel
 
@@ -41,7 +89,7 @@ Environment variables live in a file called `.env` at the repo root. Copy `.env.
 </Callout>
 
 <Callout type="warning" title="Do not lose SECRET_KEY in production">
-  If you set `SECRET_KEY` and then lose it, the encrypted OAuth secrets cannot be read again. Keep it backed up somewhere safe.
+  If you set `SECRET_KEY` and then lose it, every encrypted value can no longer be read. That includes OAuth secrets, email credentials, webhook URLs and signing secrets, and the AI key. You would need to enter them again. Keep the key backed up somewhere safe.
 </Callout>
 
 <Callout type="warning" title="Keep secrets out of version control">
@@ -50,8 +98,31 @@ Environment variables live in a file called `.env` at the repo root. Copy `.env.
 
 ## Where each variable is used
 
-- `PORT`, `DATABASE_URL`, `DATA_DIR`, `COOKIE_SECURE`, `SECRET_KEY`, `PUBLIC_URL`, `RESEND_API_KEY`, `RESEND_FROM` — read by the API server.
-- `PORT` and `PUBLIC_URL` — also used by the web app in dev to know where to send API requests.
+- `PORT`, `DATABASE_URL`, `DATA_DIR`, `COOKIE_SECURE`, `SECRET_KEY`, `PUBLIC_URL`, `RESEND_*`, and `SMTP_*` are read by the API server.
+- `PORT` and `PUBLIC_URL` are also used by the web app in dev to know where to send API requests.
+
+## Docker Compose
+
+The `docker-compose.yml` in the repo reads these variables from your `.env` and passes them to the app container, so you set them once in `.env`:
+
+```bash
+PUBLIC_URL=https://feedback.example.com
+COOKIE_SECURE=true
+SECRET_KEY=replace-with-the-output-of-openssl-rand
+POSTGRES_PASSWORD=choose-a-password
+SMTP_HOST=smtp.postmarkapp.com
+SMTP_USER=apikey
+SMTP_PASS=your-smtp-password
+SMTP_FROM=UserCue <noreply@example.com>
+```
+
+Then restart the stack:
+
+```bash
+docker compose up -d
+```
+
+Uploads and the key file live in the `uploads` volume, mounted at `/data`. The database lives in the `postgres` volume. Keep both when you move servers.
 
 ## To see all defaults
 

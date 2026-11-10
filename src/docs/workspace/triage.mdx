@@ -1,0 +1,66 @@
+---
+title: Triage tools
+description: Score suggestions by impact and effort, sort by priority, and keep internal notes that customers never see.
+sidebarTitle: Triage
+author: brennanp
+---
+
+Votes tell you what people want. Triage adds what it would cost and what it would change, so the next thing you build is a decision and not a guess. Everything here is staff only. Customers never see impact, effort, scores, or notes.
+
+## Impact and effort
+
+On a suggestion, staff with Manage posts can set two values. Each has five levels, from Very low (1) to Very high (5), or Not set.
+
+| Field | Higher means |
+| --- | --- |
+| Impact | More value to customers or to you |
+| Effort | More work to build |
+
+Either value can be cleared again. The scale is yours to define, so agree on what a 3 means before the team starts scoring.
+
+## Priority score
+
+When both values are set, UserCue calculates one number:
+
+```text
+priority = (votes + 1) × impact ÷ effort
+```
+
+The result is rounded to one decimal. The `+ 1` keeps a brand new suggestion with no votes from scoring zero.
+
+| Votes | Impact | Effort | Priority |
+| --- | --- | --- | --- |
+| 0 | 5 | 1 | 5.0 |
+| 12 | 4 | 2 | 26.0 |
+| 40 | 2 | 5 | 16.4 |
+
+A suggestion missing either value has no score and sorts last under Priority. Choose Priority score in the Sort by menu on the [suggestion list](/workspace/filters). The sort is hidden when triage is off everywhere. It is never offered on the public board, and a request for it from a non-staff visitor falls back to Top.
+
+## Internal notes
+
+Notes are a private thread on each suggestion. Use them for context a customer should not see: who asked, links to the support ticket, why it was declined.
+
+- Every staff member can read and add notes. Notes are plain text, up to 2000 characters.
+- You can delete your own notes. Staff with Manage posts can delete anyone's.
+- Notes move with a suggestion if it is [merged](/boards/duplicates).
+
+## Turn triage off
+
+Some teams only want votes and a roadmap. Triage can be disabled for the whole workspace, or kept on for specific boards.
+
+In [General settings](/settings/general#triage-tools):
+
+- **Triage tools** is the master switch. With it off, the Triage panel is hidden everywhere.
+- With it on, choose All boards, or pick the boards that use it. Suggestions on other boards have no triage panel.
+
+When triage is off for a suggestion, its values and notes are kept but not shown. Turn it on again and they reappear. Over the API, the triage endpoints return `404` for a suggestion where triage is off, and setting `impact` or `effort` returns `400`.
+
+## AI assist
+
+If [AI assist](/integrations/ai) is configured, the triage panel can summarize a long thread and suggest tags. Both only fill in text or checkboxes for you to confirm.
+
+## What to read next
+
+- [Filters and saved views](/workspace/filters) shows how to sort by priority.
+- [Similar posts and merging](/boards/duplicates) cleans up duplicates before you score.
+- [Triage in the API](/api#triage) lists the endpoints.

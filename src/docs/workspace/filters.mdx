@@ -1,0 +1,53 @@
+---
+title: Filters and saved views
+description: Narrow the suggestion list by status, board, tag, assignee, and votes, then save the combination as a view in your sidebar.
+sidebarTitle: Filters and views
+author: brennanp
+---
+
+The suggestion list in the workspace lives at `/admin/requests`. The sidebar already filters by status and board. The filter panel adds four more controls, and any combination can be saved as a view.
+
+## Filters
+
+| Control | Options |
+| --- | --- |
+| Sort by | Newest, Most votes, or Priority score when [triage](/workspace/triage) is on |
+| Minimum votes | Any, or 3, 5, 10, 25, or 50 or more |
+| Tag | Any tag, or one [tag](/boards/tags) |
+| Assignee | Anyone, Unassigned, or one staff member |
+
+Filters combine. Status, board, tag, assignee, and votes all have to match. Every filter is stored in the page address, so you can copy the link and send it to a teammate who has workspace access.
+
+## Saved views
+
+Set up a filter you will want again, for example Planned, tagged Billing, 10 or more votes. When the combination is not already saved, a save control appears. Name it and it is added under Views in the sidebar.
+
+- Views belong to you. A teammate's views do not appear in your sidebar.
+- A name can be up to 40 characters, and you can keep up to 30 views.
+- A view stores filters, not results. It always shows the current matching suggestions.
+- The save control only appears when at least one filter is set, and it hides once the same filter is already saved.
+- Hover a view and choose the delete icon to remove it. Deleting a view never touches the suggestions.
+
+### What a view remembers
+
+A view saves these keys of the address: `status`, `board`, `tag`, `assignee`, `minVotes`, `sort`, and `q` (search). Anything else is dropped, and each value is cut at 100 characters.
+
+## Use the same filters from the API
+
+The list endpoint accepts the same filters, so a script can reproduce a view:
+
+```bash
+curl --get 'https://feedback.example.com/api/v1/posts' \
+  --header 'Authorization: Bearer uc_your_api_key' \
+  --data-urlencode 'status=planned' \
+  --data-urlencode 'tag=4' \
+  --data-urlencode 'minVotes=10' \
+  --data-urlencode 'sort=top'
+```
+
+See [List posts](/api#list-posts) for every parameter. Saved views themselves are a workspace feature and are not part of the public API.
+
+## What to read next
+
+- [Triage tools](/workspace/triage) adds priority scores to sort by.
+- [Workspace](/workspace) is the staff home and inbox.

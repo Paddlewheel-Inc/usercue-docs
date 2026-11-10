@@ -1,0 +1,111 @@
+---
+title: Embeds
+description: Add a feedback button, or an inline board, roadmap, or changelog, to your own site with one script tag.
+sidebarTitle: Embeds
+author: brennanp
+---
+
+The embed script puts UserCue inside your product or marketing site. There are two shapes: a floating feedback button, and inline blocks you place anywhere on a page.
+
+## Add the feedback button
+
+Add one line before `</body>`. Settings, then Integrations, then Embed shows the exact line for your server, with a board picker.
+
+```html
+<script src="https://feedback.example.com/api/embed.js" defer></script>
+```
+
+A round button appears in the bottom corner. It opens a panel with your feedback board, so visitors can search, vote, and post without leaving the page.
+
+### Options
+
+Set options as `data-` attributes on the script tag.
+
+| Attribute | Default | What it does |
+| --- | --- | --- |
+| `data-board` | First board | Slug of the board the button opens, for example `ideas` |
+| `data-label` | `Feedback` | Text on the button |
+| `data-position` | `right` | `left` or `right` |
+| `data-color` | UserCue pink | Button color as `#RRGGBB` |
+| `data-widget` | On | Set to `off` to hide the button and use inline blocks only |
+
+```html
+<script
+  src="https://feedback.example.com/api/embed.js"
+  data-board="ideas"
+  data-label="Suggest a feature"
+  data-position="left"
+  data-color="#2563eb"
+  defer
+></script>
+```
+
+An invalid `data-color` falls back to the default pink.
+
+## Add an inline block
+
+Put a `div` where you want the content. The script finds it and fills it with an iframe that grows to fit.
+
+```html
+<div data-usercue-embed="feedback" data-board="ideas"></div>
+<div data-usercue-embed="roadmap"></div>
+<div data-usercue-embed="changelog"></div>
+```
+
+If you only use inline blocks, hide the floating button:
+
+```html
+<script src="https://feedback.example.com/api/embed.js" data-widget="off" defer></script>
+```
+
+The script is loaded once per page and handles every block on it.
+
+## How it behaves
+
+- **Same board, same data.** The embed is your real board. Votes and posts show up in the workspace like any others.
+- **Guests are identified by browser storage.** Browsers block third-party cookies, so the embed keeps a random visitor ID in local storage and sends it with each request. One visitor gets one vote per suggestion, as everywhere else. [Vote limits](/boards/comments#vote-limits) apply to that ID.
+- **Your guest setting applies.** If guest posting is off, visitors need to sign in to post.
+- **Links open in a new tab.** Clicking a suggestion title or link opens the full page, so the embed never navigates away from your page.
+- **The embed can be framed.** The `/embed/` pages allow framing from any site. Everything else in UserCue still refuses to be framed.
+
+## React and other frameworks
+
+Add the script once in your root layout. In Next.js:
+
+```tsx
+import Script from "next/script";
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      {children}
+      <Script
+        src="https://feedback.example.com/api/embed.js"
+        data-board="ideas"
+        strategy="lazyOnload"
+      />
+    </>
+  );
+}
+```
+
+For inline blocks in a single-page app, render the `div` and make sure the script loads after it is in the page. If a block is added later by client code, reload the script or use a plain `iframe`.
+
+## Use the iframe directly
+
+The script is optional. Any page can embed a view with an `iframe`:
+
+```html
+<iframe
+  src="https://feedback.example.com/embed/roadmap"
+  title="Roadmap"
+  style="border:0;width:100%;height:640px"
+></iframe>
+```
+
+The paths are `/embed/feedback`, `/embed/roadmap`, and `/embed/changelog`. Add `?board=ideas` to choose a board. The page posts its height to the parent as `{ "type": "usercue:height", "height": 720 }` so you can size the frame yourself.
+
+## What to read next
+
+- [Integrations overview](/integrations) compares every way to connect.
+- [Voting and comments](/boards/comments) explains the vote rules the embed follows.

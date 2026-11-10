@@ -1,0 +1,95 @@
+---
+title: Notifications
+description: Outgoing email with Resend or SMTP, voter alerts, the weekly digest, and Slack, Discord, and Teams channels.
+sidebarTitle: Notifications
+author: brennanp
+---
+
+Notifications is everything UserCue sends to people: email, chat messages, and the weekly digest. You need Workspace settings to change it. Each section saves on its own.
+
+## Email delivery
+
+UserCue sends staff invites, the weekly digest, and shipped alerts by email. Choose one provider.
+
+| Provider | Choose it when |
+| --- | --- |
+| Resend | You already use Resend, or want [email-in](/integrations/email-in), which needs it |
+| SMTP | You have a mail server or a provider such as Postmark, Mailgun, SES, or your own host |
+
+If both are on, Resend is used.
+
+### Resend
+
+Save a from address and an API key, then turn Resend on. The from address looks like `UserCue <noreply@yourdomain.com>`, and its domain must be verified in Resend or sends fail.
+
+### SMTP
+
+Enter the host, port, user, password, and from address, then turn SMTP on. Host and from address go together: you cannot save one without the other. Turn on the secure option for implicit TLS, which is usually port 465.
+
+### Where the secrets live
+
+Keys and passwords are encrypted before they are stored, and the page never shows them again. It shows a short fingerprint so you can tell one is saved. Leave a secret field blank and save to keep the current value.
+
+You can also set these in the server environment. Settings saved here take over from the environment.
+
+| Resend | SMTP |
+| --- | --- |
+| `RESEND_API_KEY`, `RESEND_FROM` | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` |
+
+See [environment variables](/getting-started/environment).
+
+<Callout title="Set PUBLIC_URL">
+  Links in email, such as the invite link, the digest, and shipped notices, are built from `PUBLIC_URL`. Without it, UserCue cannot send them.
+</Callout>
+
+## Voter alerts
+
+When on, people who voted on a suggestion are told when it ships. Shipping means the suggestion reaches a Complete status, or a changelog entry linked to it goes public.
+
+- Signed-in voters get an in-app notification. They also get an email if outgoing email is on and they have not turned off email updates on their account page.
+- Guests have no account, so they cannot be notified.
+- Each suggestion notifies its voters once.
+
+## Weekly digest
+
+An email to your team with three sections: new suggestions, suggestions gaining votes, and shipped work. A section with nothing in it is left out, and a week with nothing at all sends no email.
+
+| Setting | Notes |
+| --- | --- |
+| Send the weekly digest | Needs outgoing email and `PUBLIC_URL`. The page tells you what is missing. |
+| Day | Monday to Sunday |
+| Time | Hour of the day, in UTC |
+
+The digest goes to staff who can open the workspace. Each person can opt out from their account page with Weekly digest of new requests and activity. It sends once per week even if the server restarts.
+
+## Chat channels
+
+Post new suggestions, status changes, and comments to a team channel. Each service uses an incoming webhook URL that you create on their side and paste here. The URL is encrypted and never shown again.
+
+<Tabs items={["Slack", "Discord", "Teams"]}>
+  <Tab value="Slack">
+    Create an incoming webhook for a channel at `api.slack.com/apps`. The URL starts with `https://hooks.slack.com/services/`.
+  </Tab>
+  <Tab value="Discord">
+    In the channel's settings, open Integrations, then Webhooks, and create one. The URL starts with `https://discord.com/api/webhooks/`.
+  </Tab>
+  <Tab value="Teams">
+    In the channel, add a Workflows webhook ("Post to a channel when a webhook request is received") and copy its URL. UserCue accepts Workflows URLs from Power Automate and the older Office 365 connector URLs.
+  </Tab>
+</Tabs>
+
+Paste the URL, turn the service on, and save. You can run all three at once. Posts go out in the background, so a chat outage never slows down feedback.
+
+For your own tools, use [webhooks](/integrations/webhooks) instead. They send JSON you can process.
+
+## Per-person email preferences
+
+Each signed-in person sets these on their account page:
+
+- Mentions, and updates when a suggestion I voted on ships.
+- Weekly digest, for staff only.
+
+## What to read next
+
+- [Webhooks](/integrations/webhooks) send signed JSON to your own services.
+- [Environment variables](/getting-started/environment) lists the mail variables.

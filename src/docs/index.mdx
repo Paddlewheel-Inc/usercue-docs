@@ -10,14 +10,15 @@ UserCue is a public board for suggestions and a private workspace for the people
 
 Visitors open the board, post an idea, vote, and comment. Staff open the workspace, move suggestions through status, assign them, tag them, and publish a roadmap of what is planned, in progress, and done.
 
-The two sides share one workspace. The accent color, boards, tags, and sign-in methods are workspace settings. Light and dark mode is a personal choice stored in the browser.
+The two sides share one workspace. The brand color, boards, tags, and sign-in methods are workspace settings. Light and dark mode is a personal choice stored in the browser.
 
 ## The public board
 
 The board is what customers see.
 
 - [Boards](/boards) group suggestions. A workspace can have more than one, such as Feature requests and Bugs.
-- A [suggestion](/boards/suggestions) is a title, an optional description, votes, comments, a status, and any tags staff have applied.
+- A [suggestion](/boards/suggestions) is a title, an optional description, votes, comments, a status, and any tags staff have applied. While people type, UserCue points them at [similar suggestions](/boards/duplicates) so votes are not split.
+- The [changelog](/changelog) tells people what shipped, and the people who voted are told too.
 - The [roadmap](/workspace/roadmap) shows Planned, In Progress, and Complete. Open and Closed stay off the roadmap.
 
 Anyone can read the board. Posting and commenting follow the guest setting in [General settings](/settings/general). With guests allowed, a name is enough. With guests turned off, the person has to sign in first.
@@ -27,8 +28,8 @@ Anyone can read the board. Posting and commenting follow the guest setting in [G
 Staff with the Dashboard permission open `/admin`.
 
 - [Overview](/workspace) is the home page: counts by status, what is in progress, and the newest suggestions.
-- Requests is the inbox. Filter by board and status, search, and open a suggestion to change it.
-- [Settings](/settings) covers color, guests, assignment, invite email, tags, sign-in, users, and roles. Each tab is limited to the permission that owns it.
+- Requests is the inbox. Filter by board, status, tag, assignee, and votes, search, and save the result as a [view](/workspace/filters). Score suggestions with [triage tools](/workspace/triage).
+- [Settings](/settings) covers guests, assignment, notifications, integrations, branding, tags, sign-in, the team, users, roles, and the audit log. Each tab is limited to the permission that owns it.
 
 The first account on a new workspace is the owner. That role is locked and has every permission. Later people join as staff from an invite, or as members when they sign in on the public board.
 
@@ -36,4 +37,16 @@ The first account on a new workspace is the owner. That role is locked and has e
 
 If the workspace is empty, start with [Quickstart](/getting-started). If sign-in is the job, go to [OAuth](/oauth).
 
-For integrations, see the [REST API reference](/api).
+## For developers
+
+UserCue is open source and built to be wired into the rest of your stack.
+
+| I want to | Start here |
+| --- | --- |
+| Self-host it | [Installation](/getting-started/installation) and [environment variables](/getting-started/environment) |
+| React to feedback in my own code | [Webhooks](/integrations/webhooks), with signature verification samples |
+| Create or read feedback from a script | The [REST API](/api) |
+| Put a feedback button on my site | [Embeds](/integrations/embeds) |
+| Turn emails into suggestions | [Email in](/integrations/email-in) |
+| Move my backlog over | [Import](/integrations/import) |
+| Publish release notes from CI | [Changelog markdown](/changelog/markdown) and [the API](/api#changelog) |

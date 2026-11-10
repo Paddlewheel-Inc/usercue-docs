@@ -4,7 +4,88 @@ description: Authenticate with API keys and use the versioned UserCue API.
 sidebarTitle: REST API
 ---
 
-The UserCue REST API lets you read and manage workspace feedback, boards, tags, settings, and changelog data from an integration.
+The UserCue REST API lets you read and manage workspace feedback, boards, tags, settings, changelog data, and integrations from your own code.
+
+## Quick start
+
+<Steps>
+  <Step title="Create a key">
+    In Settings, open API keys and create one. Copy it now, because it is shown once.
+  </Step>
+  <Step title="Check that it works">
+    `GET /me` returns the account the key acts as and the permissions it holds.
+  </Step>
+  <Step title="Make a request">
+    List posts, create one, or call any endpoint below.
+  </Step>
+</Steps>
+
+<Tabs items={["curl", "Node.js", "Python"]}>
+  <Tab value="curl">
+    ```bash
+    export USERCUE_URL="https://feedback.example.com"
+    export USERCUE_KEY="uc_your_api_key"
+
+    curl "$USERCUE_URL/api/v1/me" \
+      --header "Authorization: Bearer $USERCUE_KEY"
+
+    curl --get "$USERCUE_URL/api/v1/posts" \
+      --header "Authorization: Bearer $USERCUE_KEY" \
+      --data-urlencode "status=planned" \
+      --data-urlencode "limit=10"
+    ```
+  </Tab>
+  <Tab value="Node.js">
+    ```js
+    const base = `${process.env.USERCUE_URL}/api/v1`;
+    const headers = {
+      Authorization: `Bearer ${process.env.USERCUE_KEY}`,
+      "Content-Type": "application/json",
+    };
+
+    async function usercue(path, init = {}) {
+      const response = await fetch(`${base}${path}`, { ...init, headers });
+      const body = await response.json();
+      if (!response.ok) throw new Error(`${response.status}: ${body.error}`);
+      return body;
+    }
+
+    const me = await usercue("/me");
+    console.log(me.name, me.permissions);
+
+    const post = await usercue("/posts", {
+      method: "POST",
+      body: JSON.stringify({ board: "ideas", title: "Add keyboard shortcuts" }),
+    });
+    console.log(post.id);
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import os
+
+    import requests
+
+    BASE = f"{os.environ['USERCUE_URL']}/api/v1"
+    session = requests.Session()
+    session.headers["Authorization"] = f"Bearer {os.environ['USERCUE_KEY']}"
+
+
+    def usercue(method, path, **kwargs):
+        response = session.request(method, f"{BASE}{path}", timeout=15, **kwargs)
+        data = response.json()
+        if not response.ok:
+            raise RuntimeError(f"{response.status_code}: {data.get('error')}")
+        return data
+
+
+    print(usercue("GET", "/me")["permissions"])
+
+    post = usercue("POST", "/posts", json={"board": "ideas", "title": "Add keyboard shortcuts"})
+    print(post["id"])
+    ```
+  </Tab>
+</Tabs>
 
 ## Base URL
 
@@ -73,7 +154,7 @@ Validation errors and malformed JSON return HTTP `400`. Other common responses i
 | `401` | Missing or invalid API key |
 | `403` | The key is missing a required permission, the owner is suspended, a role change exceeds the caller's authority, or a workspace feature is disabled |
 | `404` | The requested resource does not exist or is unavailable |
-| `409` | A resource conflicts with an existing value, such as a duplicate board or tag name |
+| `409` | A resource conflicts with an existing value, such as a duplicate board or tag name, or a vote is refused because the owner is out of votes (`code` is `vote_limit`) |
 | `429` | The endpoint rate limit was exceeded |
 | `500` | Unexpected server error |
 
@@ -84,7 +165,10 @@ Error responses generally include an `error` string. Validation responses may in
 | Area | Methods and paths | Permission |
 | --- | --- | --- |
 | Boards | `GET /boards`, `POST /boards`, `PATCH /boards/:slug`, `DELETE /boards/:slug` | Read: API key; write: `manage_boards` |
-| Posts | `GET /posts`, `GET /posts/counts`, `POST /posts`, `GET /posts/:id`, `POST /posts/:id/vote`, `GET /posts/:id/voters`, `POST /posts/:id/comments`, `DELETE /posts/:id/comments/:commentId`, `PATCH /posts/:id`, `DELETE /posts/:id` | Read and public interactions: API key; comment deletion: `dashboard`; post updates/deletion: `manage_posts` |
+| Me | `GET /me` | API key |
+| Posts | `GET /posts`, `GET /posts/counts`, `GET /posts/similar`, `GET /posts/budget`, `POST /posts`, `GET /posts/:id`, `POST /posts/:id/vote`, `GET /posts/:id/voters`, `POST /posts/:id/comments`, `DELETE /posts/:id/comments/:commentId`, `PATCH /posts/:id`, `POST /posts/:id/merge`, `DELETE /posts/:id` | Read and public interactions: API key; comment deletion: `dashboard`; post updates, merging, and deletion: `manage_posts` |
+| Triage | `GET /posts/:id/triage`, `POST /posts/:id/notes`, `DELETE /posts/:id/notes/:noteId` | `dashboard` |
+| Workflow | `GET /workflow`, `POST /workflow`, `PATCH /workflow/:id` | Read: API key; write: `manage_settings` |
 | Tags | `GET /tags`, `POST /tags`, `PATCH /tags/:id`, `DELETE /tags/:id` | Read: API key; write: `manage_posts` or `manage_settings` |
 | Settings | `GET /settings`, `PATCH /settings`, `PATCH /settings/branding` | `dashboard`, `manage_settings`, `manage_branding` respectively |
 | API keys | `GET /settings/api-keys`, `POST /settings/api-keys`, `PATCH /settings/api-keys/:id`, `DELETE /settings/api-keys/:id` | Staff (`dashboard`); keys are scoped to their owner, Owners can list and revoke all keys |
@@ -92,9 +176,68 @@ Error responses generally include an `error` string. Validation responses may in
 | Roles | `GET /settings/roles`, `POST /settings/roles`, `PATCH /settings/roles/order`, `PATCH /settings/roles/:id`, `DELETE /settings/roles/:id` | Read: `manage_roles` or `manage_users`; write: `manage_roles` |
 | Staff | `POST /settings/invites`, `DELETE /settings/invites/:id`, `DELETE /settings/staff/:id` | `manage_staff` |
 | Sign-in providers | `GET /auth/providers`, `PUT /auth/providers/:provider`, `DELETE /auth/providers/:provider` | `manage_settings` |
+| Integrations | `GET/POST /integrations/webhooks`, `PATCH/DELETE /integrations/webhooks/:id`, `POST /integrations/webhooks/:id/test`, `POST /integrations/import/posts`, `POST /integrations/import/done`, `GET /integrations/audit` | `manage_settings` |
 | Changelog | `GET /changelog`, `GET /changelog/rss`, `GET /changelog/people`, `POST /changelog`, `GET /changelog/:id`, `PATCH /changelog/:id`, `DELETE /changelog/:id`, `POST /changelog/:id/comments`, `DELETE /changelog/:id/comments/:commentId`, `POST /changelog/:id/reactions` | Read: API key; staff operations: `dashboard`; comment/reaction: authenticated key owner |
 
 Interactive sign-in, OAuth callbacks, notifications, uploads, and other browser-only endpoints are not part of `/api/v1`.
+
+## Who am I
+
+`GET /me` — **API key**
+
+Returns the account the key acts as. Use it to confirm a key works and to see its owner's role.
+
+```json
+{
+  "id": 3,
+  "email": "sam@example.com",
+  "name": "Sam",
+  "avatarUrl": null,
+  "roleId": 2,
+  "roleName": "Staff",
+  "roleIcon": null,
+  "permissions": ["dashboard", "manage_posts"],
+  "staff": true,
+  "suspended": false,
+  "hasPassword": true,
+  "emailUpdates": true,
+  "emailDigest": true
+}
+```
+
+`permissions` lists the owner's role permissions. A key can use only the subset selected for it.
+
+## Workflow
+
+Statuses are workspace data, and they can be customized. Read them instead of hard-coding the five built-in IDs.
+
+### List statuses
+
+`GET /workflow` — **API key**
+
+```json
+[
+  { "id": "open", "name": "Open", "icon": "default", "color": "#a8a29e", "category": "open" },
+  { "id": "custom_8f1c…", "name": "Under review", "icon": "review", "color": "#7c3aed", "category": "open" }
+]
+```
+
+`category` is one of `open`, `planned`, `in_progress`, `complete`, or `closed`. The category decides how UserCue treats a status. See [Custom statuses](/workspace/statuses#custom-statuses).
+
+### Create or update a status
+
+`POST /workflow` — **`manage_settings`**
+
+| Field | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `name` | string | Yes | Trimmed; 1–40 characters |
+| `icon` | string | Yes | One of the icon names the Workflow settings tab offers, for example `default`, `circle`, `rocket`, `star`, `review` |
+| `color` | string | Yes | `#RRGGBB` |
+| `category` | string | Yes (create only) | `open`, `planned`, `in_progress`, `complete`, or `closed` |
+
+Returns the status with HTTP `201`. The ID is generated and starts with `custom_`.
+
+`PATCH /workflow/:id` — **`manage_settings`** takes `name`, `icon`, and `color`, all required, and returns the updated status. A status's category cannot change after it is created. Unknown IDs return `404`.
 
 ## Boards
 
@@ -147,13 +290,17 @@ Returns `{ "ok": true }` when deleted, or `404` if the board does not exist.
 | Query parameter | Type and allowed values | Default |
 | --- | --- | --- |
 | `board` | Board slug | All boards |
-| `status` | `open`, `planned`, `in_progress`, `complete`, `closed` | All statuses |
-| `sort` | `top`, `new` | `top` |
+| `status` | A status ID from `GET /workflow`. The built-in IDs are `open`, `planned`, `in_progress`, `complete`, `closed` | All statuses |
+| `category` | `open`, `planned`, `in_progress`, `complete`, `closed`. Matches every status in that category, including custom ones | All categories |
+| `tag` | Tag ID | Any tag |
+| `assignee` | A staff user ID, or `none` for unassigned posts | Anyone |
+| `minVotes` | Integer from 0 to 1000000 | `0` |
+| `sort` | `top`, `new`, `priority` | `top` |
 | `q` | Search text, maximum 100 characters | No search |
 | `limit` | Integer from 1 to 100 | `50` |
 | `offset` | Integer from 0 to 100000 | `0` |
 
-`top` sorts by vote count, then newest first. `new` sorts newest first. Search matches the title and body. Returns an array of post objects. Each object includes:
+`top` sorts by vote count, then newest first. `new` sorts newest first. `priority` sorts by [priority score](/workspace/triage#priority-score), highest first, and posts without a score come last. It needs a `dashboard` key; for other keys it behaves like `top`. Search matches the title and body. Returns an array of post objects. Each object includes:
 
 | Field | Type | Meaning |
 | --- | --- | --- |
@@ -255,7 +402,7 @@ No request body. This toggles the vote associated with this API key and returns:
 { "voteCount": 8, "voted": true }
 ```
 
-This operation is not idempotent: a second call with the same key removes its vote.
+This operation is not idempotent: a second call with the same key removes its vote. If the workspace has a vote limit and the owner has none left, adding a vote returns `409` with `code` set to `vote_limit`. See [Vote budget](#vote-budget).
 
 ### List voters
 
@@ -302,19 +449,98 @@ Send one or more fields:
 | Field | Type | Constraints and behavior |
 | --- | --- | --- |
 | `board` | string | Trimmed, 1–80 characters; must be an existing slug |
-| `status` | string | `open`, `planned`, `in_progress`, `complete`, or `closed` |
+| `status` | string | A status ID from `GET /workflow`, such as `planned` or a custom `custom_...` ID |
 | `title` | string | Trimmed; 1–140 characters |
 | `body` | string | Trimmed; maximum 8000 characters; sanitized by the server |
 | `assigneeId` | integer or `null` | Positive active staff user ID; `null` clears assignment; assignment must not be Off |
 | `tagIds` | integer array | Positive IDs, at most 8 distinct tags, all must exist |
+| `impact` | integer or `null` | 1–5, or `null` to clear. Returns `400` when [triage](/workspace/triage) is off for the post's board |
+| `effort` | integer or `null` | 1–5, or `null` to clear. Same rule as `impact` |
 
-Status changes are recorded in history and may send workspace notifications. When assignment mode is Automatic, changing status to `planned` can assign the next eligible staff member. All fields are validated before updates are applied; if validation fails, none of the requested changes are saved. Returns the updated post object.
+Status changes are recorded in history, can send chat and webhook notifications (`post.status_changed`), and tell voters when a post reaches a Complete status. When assignment mode is Automatic, changing status to `planned` can assign the next eligible staff member. All fields are validated before updates are applied; if validation fails, none of the requested changes are saved. Returns the updated post object.
 
 ### Delete a post
 
 `DELETE /posts/:id` — **`manage_posts`**
 
 Returns `{ "ok": true }`.
+
+### Find similar posts
+
+`GET /posts/similar?q=<text>` — **API key**
+
+Returns up to five existing posts that match the words in `q`, which is trimmed and limited to 300 characters. Use it to deflect duplicates before you create a post.
+
+```json
+{
+  "posts": [
+    { "id": 42, "title": "Add keyboard shortcuts", "status": "open", "voteCount": 7, "board": "ideas" }
+  ]
+}
+```
+
+A short or generic `q` returns an empty array. Limited to 30 requests per minute.
+
+### Vote budget
+
+`GET /posts/budget` — **API key**
+
+Returns how many active votes the key's owner has used against the workspace [vote limit](/settings/general#voting).
+
+```json
+{ "limit": 10, "used": 4 }
+```
+
+`limit` is `0` when there is no limit. When the owner is at the limit, `POST /posts/:id/vote` returns `409` with `{ "error": "...", "code": "vote_limit" }`. Removing a vote is always allowed.
+
+### Merge a post
+
+`POST /posts/:id/merge` — **`manage_posts`**
+
+```json
+{ "targetId": 42 }
+```
+
+Merges the post in the path into `targetId`. Votes, comments, tags, internal notes, and changelog links move to the target, and the merged post is deleted. Requests for the old ID now resolve to the target, so existing links keep working. Returns `{ "targetId": 42 }`.
+
+`400` means the IDs are the same. `404` means either post does not exist. A merge sends the `post.merged` [webhook](/integrations/webhooks) and is written to the [audit log](/settings/audit-log). See [Similar posts and merging](/boards/duplicates).
+
+## Triage
+
+These endpoints need `dashboard`. They return `404` for a post where [triage](/workspace/triage) is turned off. To set the scores, `PATCH /posts/:id` with `impact` and `effort`.
+
+### Read triage data
+
+`GET /posts/:id/triage` — **`dashboard`**
+
+```json
+{
+  "impact": 4,
+  "effort": 2,
+  "score": 26,
+  "notes": [
+    { "id": 9, "authorName": "Sam", "body": "Asked for by Acme.", "createdAt": 1793556000, "canDelete": true }
+  ]
+}
+```
+
+`score` is `(votes + 1) × impact ÷ effort`, rounded to one decimal, or `null` when either value is missing.
+
+### Add a note
+
+`POST /posts/:id/notes` — **`dashboard`**
+
+```json
+{ "body": "Asked for by Acme." }
+```
+
+`body` is trimmed, 1–2000 characters. Returns the note with HTTP `201`. Limited to 30 requests per minute.
+
+### Delete a note
+
+`DELETE /posts/:id/notes/:noteId` — **`dashboard`**
+
+A key can delete notes its owner wrote. `manage_posts` can delete anyone's. Returns `{ "ok": true }`, `403` if the note belongs to someone else, or `404`.
 
 ## Tags
 
@@ -359,7 +585,10 @@ Returns a settings snapshot with the following fields:
 - Workspace behavior: `allowGuestFeedback`, `changelogEnabled`, `changelogComments`, `changelogReactions`, `changelogRssUrl`, `assignmentMode`, `oauthOnly`, `customerTags`, and `customerTagsRequired`.
 - Branding: `accent`, `logoUrl`, `logoDarkUrl`, `siteName`, `siteDescription`, `faviconUrl`, and `shareImageUrl`.
 - Email: `resend` (`configured`, `enabled`, `from`, `keyHash`, `fromEnv`) and `smtp` (`configured`, `enabled`, `host`, `port`, `user`, `from`, `secure`, `passConfigured`, `fromEnv`).
-- Notifications: `discord` and `teams`, each with `configured`, `enabled`, and `keyHash`.
+- Chat notifications: `slack`, `discord`, and `teams`, each with `configured`, `enabled`, and `keyHash`.
+- Engagement: `notifyVoters`, `voteLimit`, and `digest` (`enabled`, `day`, `hour`, `ready`).
+- Triage: `triage` with `enabled` and a `boards` array of `{ "slug", "name", "enabled" }`.
+- Integrations: `inbound` (`enabled`, `configured`, `keyHash`, `url`, `resendReady`) and `ai` (`enabled`, `configured`, `baseUrl`, `model`, `keyHash`).
 - Staff: `staff` and `invites` arrays. These include staff email addresses and invite URLs, so the arrays are returned only to keys that also have `manage_staff`; otherwise they are empty.
 
 Secret values are never returned. `keyHash` is only a short fingerprint, not a credential.
@@ -391,6 +620,21 @@ All fields are optional; send only the values you want to change.
 | `discordWebhookUrl` | string | Maximum 200 characters; must be a valid Discord webhook URL |
 | `teamsEnabled` | boolean | Requires a configured Teams webhook |
 | `teamsWebhookUrl` | string | Maximum 2000 characters; must be a valid Teams webhook URL |
+| `slackEnabled` | boolean | Requires a configured Slack webhook |
+| `slackWebhookUrl` | string | Maximum 2000 characters; must be a valid Slack webhook URL |
+| `notifyVoters` | boolean | Tell voters when a post they backed ships |
+| `voteLimit` | integer | 0–100. `0` means unlimited |
+| `triageEnabled` | boolean | Master switch for triage tools |
+| `triageBoards` | string array | Board slugs that use triage tools |
+| `digestEnabled` | boolean | Requires outgoing email and `PUBLIC_URL` |
+| `digestDay` | integer | 1 (Monday) to 7 (Sunday) |
+| `digestHour` | integer | 0–23, in UTC |
+| `inboundEnabled` | boolean | Requires a Resend API key and a saved signing secret |
+| `inboundSecret` | string | Maximum 200 characters; the Resend webhook signing secret, not returned by the API |
+| `aiEnabled` | boolean | Requires `aiBaseUrl` and `aiModel` |
+| `aiBaseUrl` | string | Maximum 300 characters; an `http` or `https` URL |
+| `aiModel` | string | Maximum 100 characters |
+| `aiApiKey` | string | Maximum 300 characters; not returned by the API |
 | `oauthOnly` | boolean | Requires at least one enabled sign-in provider |
 | `customerTags` | boolean | Enable tags on customer feedback |
 | `customerTagsRequired` | boolean | Requires at least one tag |
@@ -515,12 +759,27 @@ Returns `{ "people": [...] }`, where each person has `id`, `name`, and `avatarUr
 | Field | Type | Required | Constraints |
 | --- | --- | --- | --- |
 | `title` | string | Yes | Trimmed; 1–140 characters |
-| `body` | string | No | Maximum 8000 characters; defaults to empty |
+| `body` | string | No | Maximum 8000 characters of HTML; defaults to empty |
+| `markdown` | string | No | Maximum 8000 characters. Rendered with the [changelog markdown](/changelog/markdown) dialect. Takes the place of `body` |
+| `publicationStatus` | string | No | `draft`, `scheduled`, or `published`. Defaults to `published` |
+| `publishAt` | integer | When `scheduled` | Unix timestamp in seconds, in the future. Only valid with `scheduled` |
 | `postId` | positive integer or `null` | No | Links an existing feedback post |
 | `imageUrl` | string | No | Maximum 200 characters; empty or a UserCue upload path |
 | `contributorIds` | integer array | No | Positive user IDs; at most 20; defaults to empty |
 
 The authenticated key owner is recorded as author. Returns the created entry with HTTP `201`.
+
+```json
+{
+  "title": "v1.4.0",
+  "markdown": "## New\n- Dark mode for the embed widget\n\n## Fixed\n- Search ignored accents",
+  "postId": 42,
+  "publicationStatus": "scheduled",
+  "publishAt": 1793559600
+}
+```
+
+Entries created through the API are published right away unless you set `publicationStatus`. Publishing sends the `changelog.published` [webhook](/integrations/webhooks) and, when `postId` is set, tells the post's voters. Drafts are visible only to staff. Entries now include `publicationStatus` and `publishedAt`, and a `markdown` field holding the source text when the entry was written in markdown, or an empty string otherwise.
 
 ### Get an entry
 
@@ -530,7 +789,7 @@ Returns the entry fields above, plus `enabled`, `commentsEnabled`, `reactionsEna
 
 ### Update or delete an entry
 
-- `PATCH /changelog/:id` — **`dashboard`**. Send any subset of `title` (trimmed, 1–140 characters), `body` (maximum 8000), `postId` (positive integer or `null`), `imageUrl` (maximum 200; empty or an upload path), and `contributorIds` (at most 20 positive user IDs). Returns the updated entry. An empty patch is rejected.
+- `PATCH /changelog/:id` — **`dashboard`**. Send any subset of `title` (trimmed, 1–140 characters), `body` (maximum 8000) or `markdown` (maximum 8000; sending `body` clears the stored markdown), `publicationStatus` and `publishAt` (as above; an entry that is already published keeps its date), `postId` (positive integer or `null`), `imageUrl` (maximum 200; empty or an upload path), and `contributorIds` (at most 20 positive user IDs). Returns the updated entry. An empty patch is rejected.
 - `DELETE /changelog/:id` — **`dashboard`**. Returns `{ "ok": true }`.
 
 ### Changelog comments
@@ -544,6 +803,114 @@ Returns the entry fields above, plus `enabled`, `commentsEnabled`, `reactionsEna
 
 Body: `{ "reaction": "heart" }`. Reaction IDs are `up`, `party`, `heart`, and `rocket`. This toggles that reaction for the key owner and returns `{ "reactions": [...] }`. Reactions must be enabled in workspace settings.
 
+## Integrations
+
+All integration endpoints need `manage_settings`.
+
+### Webhooks
+
+See [Webhooks](/integrations/webhooks) for events, payloads, and signature verification.
+
+`GET /integrations/webhooks` returns every webhook:
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Ticketing",
+    "urlPreview": "https://hooks.example.com/…",
+    "events": ["post.created", "post.status_changed"],
+    "enabled": true,
+    "lastStatus": 200,
+    "lastError": null,
+    "lastDeliveryAt": 1793556000,
+    "createdAt": 1793550000
+  }
+]
+```
+
+The full URL and the secret are never returned after creation.
+
+`POST /integrations/webhooks`
+
+| Field | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `name` | string | Yes | Trimmed; 1–60 characters |
+| `url` | string | Yes | `http` or `https` URL without a username or password; maximum 2000 characters |
+| `events` | string array | Yes | At least one of `post.created`, `post.status_changed`, `post.merged`, `comment.created`, `changelog.published` |
+
+Returns the webhook with HTTP `201`, plus a `secret` that starts with `whsec_`. **This is the only time the secret is returned.** You can have up to 20 webhooks; more returns `400`.
+
+`PATCH /integrations/webhooks/:id` accepts any of `name`, `url`, `events`, and `enabled`, and returns the updated webhook. `DELETE /integrations/webhooks/:id` returns `{ "ok": true }`. Unknown IDs return `404`.
+
+`POST /integrations/webhooks/:id/test` sends a `ping` and returns what your server answered:
+
+```json
+{ "ok": true, "status": 200, "message": "" }
+```
+
+`ok` is `false` and `message` explains when the endpoint failed or timed out.
+
+### Import posts
+
+`POST /integrations/import/posts`
+
+Imports up to 200 rows per request. Send a larger file as several requests. For the matching rules and limits, see [Import feedback](/integrations/import).
+
+```json
+{
+  "rows": [
+    {
+      "title": "Dark mode",
+      "body": "Please add a dark theme.",
+      "status": "Planned",
+      "board": "Ideas",
+      "authorName": "Alex",
+      "authorEmail": "alex@example.com",
+      "votes": 14,
+      "createdAt": 1790000000,
+      "tags": ["UI", "Accessibility"]
+    }
+  ]
+}
+```
+
+All fields in a row are required. Use empty strings, `0`, an empty array, or `null` for `createdAt` when you have no value. Titles are required and trimmed to 1–1000 characters. A batch whose rows hold more than 100,000 votes in total returns `400`.
+
+Returns the outcome:
+
+```json
+{ "created": 1, "skipped": 0 }
+```
+
+When your whole import is done, call `POST /integrations/import/done` with `{ "count": 1 }`, using the total created. It writes one `import.posts` line to the audit log.
+
+### Audit log
+
+`GET /integrations/audit`
+
+| Query parameter | Type | Default |
+| --- | --- | --- |
+| `limit` | Integer from 1 to 100 | `50` |
+| `before` | Entry ID. Returns entries older than this one | Newest entries |
+
+```json
+{
+  "entries": [
+    {
+      "id": 120,
+      "action": "webhook.created",
+      "summary": "Added webhook “Ticketing”",
+      "actorName": "Sam",
+      "createdAt": 1793556000
+    }
+  ],
+  "nextBefore": 101
+}
+```
+
+Pass `nextBefore` as `before` to read the next page. It is `null` on the last page. See the [audit log](/settings/audit-log) for the list of actions.
+
 ## Rate limits
 
 Limits are per API key, HTTP method, and registered endpoint template, per running server process. They reset after the stated 60-second window. For example, alternate numeric spellings such as `/posts/01/comments` and `/posts/1/comments` share the same route bucket. Counters are held in process memory and are not shared across multiple server processes.
@@ -554,19 +921,23 @@ Limits are per API key, HTTP method, and registered endpoint template, per runni
 | `POST /posts/:id/comments` | 20 requests / minute |
 | `POST /posts/:id/vote` | 60 requests / minute |
 | `GET /posts/:id/voters` | 120 requests / minute |
+| `GET /posts/similar` | 30 requests / minute |
+| `POST /posts/:id/notes` | 30 requests / minute |
 | `POST /changelog` | 20 requests / minute |
 | `POST /changelog/:id/comments` | 20 requests / minute |
 | `POST /changelog/:id/reactions` | 60 requests / minute |
 
 When a limit is exceeded, the API returns `429` with `{ "error": "Too many requests" }`.
 
-## Example: create feedback with curl
+## Recipes
 
-Replace the host, key, and board slug with values from your workspace:
+Replace the host, key, and slugs with values from your workspace.
+
+### Create feedback from another system
 
 ```bash
 curl --request POST \
-  --url 'https://your-usercue-host.example/api/v1/posts' \
+  --url 'https://feedback.example.com/api/v1/posts' \
   --header 'Authorization: Bearer uc_your_api_key' \
   --header 'Content-Type: application/json' \
   --data '{
@@ -574,6 +945,79 @@ curl --request POST \
     "title": "Add keyboard shortcuts",
     "body": "<p>Speed up common actions.</p>"
   }'
+```
+
+### Check for duplicates first
+
+```js
+const params = new URLSearchParams({ q: "keyboard shortcuts" });
+const { posts } = await usercue(`/posts/similar?${params}`);
+
+if (posts.length > 0) {
+  await usercue(`/posts/${posts[0].id}/vote`, { method: "POST" });
+} else {
+  await usercue("/posts", {
+    method: "POST",
+    body: JSON.stringify({ board: "ideas", title: "Add keyboard shortcuts" }),
+  });
+}
+```
+
+### Read every post
+
+The list endpoint returns at most 100 posts per call. Page with `limit` and `offset` until a page comes back short:
+
+```js
+async function* allPosts(filter = {}) {
+  const limit = 100;
+  for (let offset = 0; ; offset += limit) {
+    const params = new URLSearchParams({ ...filter, limit, offset });
+    const page = await usercue(`/posts?${params}`);
+    yield* page;
+    if (page.length < limit) return;
+  }
+}
+
+for await (const post of allPosts({ category: "planned", sort: "new" })) {
+  console.log(post.id, post.title, post.voteCount);
+}
+```
+
+### Ship a release from CI
+
+Create the entry as markdown and link it to the suggestion you shipped. Publishing it tells the people who voted.
+
+```bash
+curl --request POST \
+  --url "$USERCUE_URL/api/v1/changelog" \
+  --header "Authorization: Bearer $USERCUE_KEY" \
+  --header 'Content-Type: application/json' \
+  --data "$(jq -n --arg markdown "$(cat RELEASE_NOTES.md)" '{title: "v1.4.0", markdown: $markdown, postId: 42}')"
+```
+
+### Move a post when a ticket closes
+
+Pair a [webhook](/integrations/webhooks) from your ticketing tool with a status change:
+
+```js
+await usercue(`/posts/${postId}`, {
+  method: "PATCH",
+  body: JSON.stringify({ status: "complete" }),
+});
+```
+
+The key needs `manage_posts`. Look up status IDs with `GET /workflow` if you use custom statuses.
+
+### Handle errors and limits
+
+Every error has an `error` string. On `429`, wait and retry. On `409` from a vote, read `code`:
+
+```js
+const response = await fetch(`${base}/posts/42/vote`, { method: "POST", headers });
+if (response.status === 409) {
+  const { code } = await response.json();
+  if (code === "vote_limit") console.log("Out of votes");
+}
 ```
 
 ## Versioning and compatibility

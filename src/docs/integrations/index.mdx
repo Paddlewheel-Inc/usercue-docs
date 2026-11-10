@@ -1,0 +1,31 @@
+---
+title: Integrations
+description: Connect UserCue to your site, your inbox, your chat, and your own code.
+sidebarTitle: Overview
+author: brennanp
+---
+
+UserCue is built to sit in the middle of the tools you already use. Everything here is configured in Settings, and nothing requires a paid plan.
+
+| Integration | Direction | Use it to |
+| --- | --- | --- |
+| [Webhooks](/integrations/webhooks) | Out | Send signed JSON to your own services when feedback changes |
+| [Chat channels](/settings/notifications#chat-channels) | Out | Post to Slack, Discord, or Teams with no code |
+| [Embeds](/integrations/embeds) | In | Put a feedback button, board, roadmap, or changelog on your own site |
+| [Email in](/integrations/email-in) | In | Turn emails to `ideas@yourdomain.com` into suggestions |
+| [Import](/integrations/import) | In | Move over from Canny, Featurebase, Productboard, or a CSV or JSON file |
+| [AI assist](/integrations/ai) | Out | Summarize threads, suggest tags, and draft changelogs with your own model |
+| [REST API](/api) | Both | Read and write everything programmatically |
+
+## Which one should I use?
+
+- **I want my team to see new feedback in chat.** Use a [chat channel](/settings/notifications#chat-channels). It takes one URL.
+- **I want something to happen in my own code or in Zapier or Make.** Use a [webhook](/integrations/webhooks).
+- **I want customers to leave feedback without leaving my product.** Use the [embed widget](/integrations/embeds).
+- **My customers already email support with ideas.** Set up [email in](/integrations/email-in).
+- **I have a backlog in another tool.** Use [import](/integrations/import).
+- **I need to create or read feedback from a script.** Use the [REST API](/api).
+
+## Who can change them
+
+Integrations need Workspace settings, except the REST API, which follows the permissions on each [API key](/api#authentication). Every change is written to the [audit log](/settings/audit-log).

@@ -1,25 +1,13 @@
 ---
 title: General
-description: Accent color, guest posting, assignment, and invite email.
+description: Guest posting, the changelog switches, assignment, triage tools, and the vote limit.
 sidebarTitle: General
 author: brennanp
 ---
 
-General is the first settings tab. You need Workspace settings for color, guests, assignment, and email. Manage staff is enough for the [Staff](/settings/staff) section at the bottom, and nothing else on this page.
+General holds the rules that decide how people use your board day to day. You need Workspace settings to open it. Every switch here saves as soon as you select it. The vote limit has a Save button, because it is a number you type.
 
-Changes to color, guests, and assignment save as soon as you select them. Invite email has its own Save button, because the API key should not be sent on every click.
-
-## Color
-
-![Accent color picker in Settings](/images/CleanShot-2026-10-13-at-9.38.51-PM@2x.png "Accent color picker in Settings")
-
-The accent is the color on buttons, links, vote counts, and the workspace hearts that use the brand color. Status hearts keep their own colors (stone, sky, violet, green, rose) so a status stays recognizable when you change the accent.
-
-Pink is the default. The other choices are Rose, Coral, Amber, Green, Teal, Blue, and Violet. There is no custom hex field. Pick one of those.
-
-The color is stored on the workspace. Public pages and the staff workspace both use it. Switching color animates. Reloading the page does not replay that animation.
-
-Light and dark mode is not here. Each person toggles that in the header, or at the bottom of the workspace sidebar. It stays on their browser.
+Looking for color or the logo? That is Branding. Looking for email? That is [Notifications](/settings/notifications). Staff invites are on the [Team](/settings/staff) tab.
 
 ## Feedback
 
@@ -29,7 +17,19 @@ On: a visitor types a name and can post a suggestion or a comment. No account is
 
 Off: the form refuses until they sign in with a provider you have enabled. If no provider is enabled, they see that sign-in is required and cannot post. Staff are unaffected. They are already signed in.
 
-This switch does not delete old guest posts. It only changes what new posts and comments require.
+This switch does not delete old guest posts. It only changes what new posts and comments require. It also applies to the [embed widget](/integrations/embeds).
+
+## Changelog
+
+Three independent switches control the [changelog](/changelog).
+
+| Switch | What it does |
+| --- | --- |
+| Publish the changelog | Shows the Changelog link in the public footer and makes entries public. Off hides it from customers but keeps your entries. |
+| Allow comments on updates | Lets signed-in people comment on an entry |
+| Allow reactions on updates | Shows the Up, Party, Heart, and Rocket reactions |
+
+Comments and reactions keep their setting if you hide the changelog. When the changelog is on, the page shows the [RSS](/changelog#rss) address to copy.
 
 ## Assignment
 
@@ -45,19 +45,30 @@ Short version:
 
 Switching modes does not clear assignees already set.
 
-## Invite email
+## Triage tools
 
-Staff invites always produce a registration link you can copy. Emailing that link is optional.
+Impact and effort scoring, the priority sort, and internal notes on each suggestion. Only staff ever see them. See [Triage tools](/workspace/triage) for how they work.
 
-To send it, turn on Email staff invites with Resend and save a from address plus an API key.
+- **Show triage tools to staff** is the master switch. Off hides everything triage-related, everywhere.
+- When it is on and you have more than one board, you can choose which boards use triage. Suggestions on a board that is not ticked have no triage panel.
 
-The from address looks like `UserCue <noreply@yourdomain.com>`. The domain has to be verified in Resend or the send fails. The registration link is still created, and Settings shows a warning when the email does not go out.
+Turning triage off keeps the data. Scores and notes come back if you turn it on again.
 
-The API key is encrypted before it is stored. The page never shows the key again. It shows a short SHA-256 prefix so you can tell that a key is saved. Leave the key field blank and save to keep the current key. You can also set `RESEND_API_KEY` and `RESEND_FROM` in the server environment. If no key has been saved in Settings, UserCue uses those. A key saved in Settings takes over from the environment.
+## Voting
 
-Turn the checkbox off if you want to hand out links yourself and not send mail.
+Limit how many open suggestions one person can back at once. The default is 0, which means unlimited. The maximum is 100.
+
+- Only active suggestions count: Open, Planned, and In Progress. Votes come back automatically when a suggestion ships or closes, so people are never stuck.
+- The count follows the person across devices when they are signed in. A guest is counted by browser.
+- Someone at the limit sees "You are out of votes" when they try to vote, and the vote is refused. They can still remove a vote and use it elsewhere.
+- Staff and the API follow the same limit.
+- Lowering the limit does not remove votes people already cast. It only blocks new ones.
+
+A limit makes votes a scarce signal, which helps when everything ends up with a vote. Developers can read a visitor's budget from the [API](/api#vote-budget).
 
 ## What to read next
 
+- [Notifications](/settings/notifications) is where email, the digest, and chat channels live.
+- [Triage tools](/workspace/triage) explains scoring and notes.
 - [Staff invites](/settings/staff) explains how to invite people to the workspace.
 - [Statuses and assignment](/workspace/statuses) explains the three assignment modes.

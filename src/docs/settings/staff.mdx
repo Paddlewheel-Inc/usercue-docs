@@ -1,11 +1,11 @@
 ---
-title: "Staff invites"
+title: "Team"
 description: "How to invite someone onto the workspace, and what the registration link does."
-sidebarTitle: "Staff"
+sidebarTitle: "Team"
 author: brennanp
 ---
 
-Staff live at the bottom of General settings. You need Manage staff.
+Team is where you invite and remove staff. It is at `/admin/settings/team`, and you need Manage staff.
 
 An invite is how a person gets a workspace login with the Staff role. It is separate from public sign-in. A customer who signs in with Discord on the board becomes a Member. They can post as themselves. They cannot open `/admin` unless you change their role.
 
@@ -16,7 +16,7 @@ Enter their email and choose Invite.
 - If that email already has an account, UserCue promotes them to staff instead of creating a second account. They can open the workspace with the login they already use.
 - If they are new, UserCue creates a registration link. They open it, set their name and a password of at least 8 characters, and then sign in at `/login`.
 
-You can copy the link from the page. If [invite email](/settings/general#invite-email) is on and the send succeeds, they also get the link by email. If the send fails, the link is still there.
+You can copy the link from the page. If outgoing [email](/settings/notifications#email-delivery) is on and the send succeeds, they also get the link by email. If the send fails, the link is still there.
 
 Invites expire. The pending list shows when. Revoke throws the link away. A revoked link cannot be used.
 
@@ -28,8 +28,12 @@ You cannot remove yourself here.
 
 Removing someone also drops them from automatic assignment going forward. Suggestions already assigned to them stay assigned.
 
+## What staff receive
+
+Staff who can open the workspace get the [weekly digest](/settings/notifications#weekly-digest) unless they opt out on their account page. Invites, removals, and promotions are written to the [audit log](/settings/audit-log).
+
 ## What to read next
 
-- [General settings](/settings/general) is where invite email is configured.
+- [Notifications](/settings/notifications) is where invite email is configured.
 - [Users](/settings/users) explains how to suspend or delete accounts.
 - [Roles](/settings/roles) explains what each role can do.

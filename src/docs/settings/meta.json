@@ -1,0 +1,11 @@
+{
+  "pages": [
+    "index",
+    "general",
+    "notifications",
+    "staff",
+    "users",
+    "roles",
+    "audit-log"
+  ]
+}

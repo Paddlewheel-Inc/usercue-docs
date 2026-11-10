@@ -1,0 +1,72 @@
+---
+title: Email in
+description: Turn emails sent to an address on your domain into suggestions, using Resend's inbound email.
+sidebarTitle: Email in
+author: brennanp
+---
+
+Customers already email you ideas. Email in turns each message into a suggestion, so nothing lives only in an inbox. Receiving is handled by [Resend](https://resend.com), which UserCue uses to fetch each message.
+
+## Before you start
+
+- A Resend account with a domain you control.
+- `PUBLIC_URL` set on your server, so the webhook URL is one Resend can reach. See [environment variables](/getting-started/environment).
+- Your Resend API key saved under Settings, then Notifications, then [Email delivery](/settings/notifications#email-delivery). UserCue uses it to read incoming messages.
+
+## Set it up
+
+<Steps>
+  <Step title="Turn on receiving in Resend">
+    In Resend, add your domain and enable receiving. Resend shows MX records. Add them in your DNS provider. If the domain also handles normal mail, use a subdomain such as `ideas.example.com`, so you do not redirect your regular mail.
+  </Step>
+  <Step title="Add the webhook in Resend">
+    In Resend, open Webhooks and add the endpoint shown in Settings, then Integrations, then Email in. It looks like `https://feedback.example.com/api/inbound/resend`. Subscribe it to the `email.received` event.
+  </Step>
+  <Step title="Paste the signing secret">
+    Resend shows a signing secret that starts with `whsec_`. Paste it into Email in and turn on Accept feedback by email, then save. UserCue verifies every request with it and rejects anything unsigned.
+  </Step>
+  <Step title="Send a test email">
+    Write to `anything@your-domain` and check the board. The message should appear within a few seconds.
+  </Step>
+</Steps>
+
+## Choosing the board
+
+UserCue reads the part of the address before the `@` and looks for a board with that slug.
+
+| Address | Lands on |
+| --- | --- |
+| `ideas@example.com` | The board with slug `ideas` |
+| `support+ideas@example.com` | The board with slug `ideas` (the part after `+` wins) |
+| `hello@example.com` | Your first board, since no board is named `hello` |
+
+Board slugs are in the board's URL, for example `/board/feature-requests`.
+
+## What becomes the suggestion
+
+| Part of the email | Becomes |
+| --- | --- |
+| Subject | The title, without `Re:` or `Fwd:`. A message with no subject becomes `Email feedback`. |
+| Body | The description. Quoted reply lines that start with `>` are removed. If there is no plain text, the HTML is converted to text. |
+| Sender | The author. If the address belongs to a UserCue account, the post is attributed to that person. Otherwise it uses the name from the `From` header, or the start of the address. |
+
+The sender gets one vote on their own suggestion, and your usual notifications run: chat channels, and `post.created` webhooks.
+
+## Safeguards
+
+- **Signed requests only.** Requests without a valid Resend signature, or older than five minutes, are rejected.
+- **No duplicates.** Resend may retry a webhook. Each email is processed once.
+- **Rate limit.** One sender can create up to 10 suggestions per hour. Extra messages are ignored.
+- **Suspended accounts** are ignored.
+- **Attachments are not imported.** Only the text of the message is used.
+
+If Resend cannot be reached to fetch a message, UserCue answers with an error so Resend retries later.
+
+<Callout type="warning" title="Anyone can email an address">
+  Email in has no allowlist. It is as open as your board with guest posting on. Turn off Accept feedback by email if you start receiving spam, and use a subdomain that you do not publish widely.
+</Callout>
+
+## What to read next
+
+- [Notifications](/settings/notifications) is where the Resend key is saved.
+- [Webhooks](/integrations/webhooks) can forward new suggestions, including emailed ones.

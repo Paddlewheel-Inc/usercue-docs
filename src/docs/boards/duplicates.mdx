@@ -1,0 +1,48 @@
+---
+title: Similar posts and merging
+description: How UserCue suggests existing posts before someone submits a duplicate, and how staff merge duplicates without losing votes.
+sidebarTitle: Duplicates
+author: brennanp
+---
+
+Two requests for the same thing split the votes and make the board harder to read. UserCue helps on both ends: it nudges people toward the existing post before they submit, and it lets staff fold duplicates together afterwards.
+
+## Before someone posts
+
+While a person types a title, UserCue looks for posts that already cover the same words and shows up to five of them under the form. Each result shows its status and vote count. Choosing one opens it, so the person can vote there instead.
+
+- Matching uses full-text search on the title and body of every board, and ranks by how many of the typed words match, then by votes.
+- A result must match enough of the words to count. Short or very generic titles show nothing rather than noise.
+- The suggestions are a nudge. Nobody is blocked from posting.
+
+Developers can use the same lookup through the [API](/api#find-similar-posts).
+
+## Merge duplicates
+
+Staff with Manage posts can merge a post into another one. Open the duplicate, choose Merge, and pick the post to keep.
+
+| What | What happens |
+| --- | --- |
+| Votes | Copied to the kept post. A person who voted on both counts once. |
+| Comments | Moved to the kept post, with their threads. |
+| Tags | Added to the kept post. |
+| Internal notes | Moved to the kept post. |
+| Changelog links | Entries that pointed at the duplicate now point at the kept post. |
+| The duplicate | Deleted. |
+
+Counts on the kept post are recalculated from the real votes and comments, so they always add up.
+
+### Old links keep working
+
+The duplicate's URL becomes a redirect. Anyone who opens `/post/<old id>` lands on the kept post, and so do API requests for the old ID. If you later merge the kept post into another one, the earlier redirects follow along.
+
+<Callout type="warning" title="Merging cannot be undone">
+  The duplicate is deleted. Check the target before you confirm. If you merged the wrong one, the votes stay on the kept post, and you would need to re-create the other request by hand.
+</Callout>
+
+Every merge is written to the [audit log](/settings/audit-log) and sent as a `post.merged` [webhook](/integrations/webhooks#events).
+
+## What to read next
+
+- [Triage](/workspace/triage) scores what is left after you merge.
+- [Suggestions](/boards/suggestions) covers posting and what staff can change.

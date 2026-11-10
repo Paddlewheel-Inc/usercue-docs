@@ -1,40 +1,57 @@
 ---
 title: Settings
-description: Which settings exist, and which permission opens each tab.
+description: Every settings tab, what it controls, and which permission opens it.
 sidebarTitle: Settings
 ---
 
 ![Paddlewheel Settings page](/images/Paddlewheel-Settings.png "Paddlewheel Settings page")
 
-Settings is `/admin/settings`. The link shows in the sidebar only if you can open at least one tab.
+Settings is `/admin/settings`. The link shows in the sidebar only if you can open at least one tab. UserCue hides tabs you cannot use, and if you open the URL of a hidden tab you are sent to one you can.
 
-The page header says what the section is for: who can leave feedback, and who can triage it. The tabs under that are not all available to every staff member. UserCue hides a tab you cannot use, and if you open its URL directly you are sent to a tab you can use.
+## Tabs
 
-| Tab | Who can open it | What it changes |
+| Tab | Permission | What it changes |
 | --- | --- | --- |
-| [General](/settings/general) | Workspace settings, or Manage staff for the invite section only | Accent color, guest posting, assignment, invite email, and staff invites |
-| API keys | Staff with the `dashboard` permission | Create and manage your integration keys; Owners can also revoke other staff members' keys |
-| [Tags](/boards/tags) | Manage posts, or Workspace settings | The tag list: names and colors |
-| [Authentication](/oauth) | Workspace settings | GitHub, Discord, and Google |
+| [General](/settings/general) | Workspace settings | Guest posting, the changelog switches, assignment, triage tools, and the vote limit |
+| Workflow | Workspace settings | Name, color, and icon for each status. See [Statuses](/workspace/statuses) |
+| Branding | Manage branding | Site name and description, logo, browser icon, link preview image, and the workspace color palette |
+| [Tags](/boards/tags) | Manage posts, or Workspace settings | The tag list, and whether customers can tag |
+| [Notifications](/settings/notifications) | Workspace settings | Outgoing email (Resend or SMTP), voter alerts, the weekly digest, and Slack, Discord, and Teams |
+| Integrations | Workspace settings | [Webhooks](/integrations/webhooks), [email in](/integrations/email-in), [AI assist](/integrations/ai), the [embed](/integrations/embeds) snippets, and [import](/integrations/import) |
+| API keys | Dashboard | Your keys for the [REST API](/api). Owners can also revoke other people's keys |
+| [Authentication](/oauth) | Workspace settings | GitHub, Discord, and Google sign-in |
+| [Team](/settings/staff) | Manage staff | Staff invites and removing staff |
 | [Users](/settings/users) | Manage users | Registered accounts: role, suspend, delete |
 | [Roles](/settings/roles) | Manage roles | Role names, icons, and permissions |
+| [Audit log](/settings/audit-log) | Workspace settings | Who changed what, for the last 400 days |
 
-Someone with only Manage posts can open Settings, but they only see Tags. Someone with only Manage staff sees General, and on that page they only see the Staff section. Color, guests, assignment, and invite email stay hidden without Workspace settings.
+Owner can open all of them. The default Staff role cannot open most. Give Staff extra permissions on the Roles tab if they should.
 
-Owner can open all of them. The default Staff role cannot. Give Staff the extra permissions on the Roles tab if they should.
+## Where did that setting go?
 
-Role changes have an additional permission boundary: changing a user's role requires both Manage users and Manage roles. A role can only grant permissions held by the person creating or editing it. Assigning the Owner role is limited to an Owner with the full permission set. These rules also apply when making changes through the REST API.
+Settings are grouped by what they do, not by when they were added. If you are looking for something:
 
-Nothing in Settings is per person except the staff list itself. Color, guests, assignment, tags, and sign-in apply to the whole workspace, including the public board.
+| You want to | Go to |
+| --- | --- |
+| Set up invite or digest email | Notifications, Email delivery |
+| Post new suggestions to Slack, Discord, or Teams | Notifications, Chat channels |
+| Send events to your own server | Integrations, Webhooks |
+| Turn triage scoring and notes off | General, Triage tools |
+| Limit how many votes one person has | General, Voting |
+| Change the accent color | Branding, Workspace palette |
+| See who changed a setting | Audit log |
+| Invite a teammate | Team |
 
-Any staff member with the `dashboard` permission can open the API keys tab. Staff can create and manage their own keys, and each key can only use permissions its owner holds. Owners can view all workspace keys and revoke any key; only the key owner can edit its permissions.
+## Permissions rules worth knowing
 
-The [REST API](/api) uses API keys created from the API keys tab. Role-management actions remain bounded by the caller's effective permissions.
+- Someone with only Manage posts can open Settings, but sees only Tags. Someone with only Manage staff sees only Team.
+- Changing a user's role needs both Manage users and Manage roles. A role can only grant permissions held by the person creating or editing it. Only an Owner with the full permission set can assign the Owner role. These rules also apply through the REST API.
+- Any staff member with Dashboard can create API keys. Each key can only use permissions its owner holds. Only the key's owner can edit its permissions.
+- Almost everything in Settings applies to the whole workspace, including the public board. The exceptions are saved views and email preferences, which belong to each person.
 
 ## What to read next
 
-- [General](/settings/general) covers accent color, guest posting, assignment, and invite email.
-- [Staff invites](/settings/staff) explains how to invite people to the workspace.
+- [General](/settings/general) covers guest posting, assignment, triage, and voting.
+- [Notifications](/settings/notifications) covers email, digests, and chat.
 - [Roles](/settings/roles) explains permissions and built-in roles.
-- [Users](/settings/users) explains how to suspend or delete accounts.
-- [Authentication](/oauth) explains GitHub, Discord, and Google sign-in.
+- [REST API](/api) uses the keys created on the API keys tab.

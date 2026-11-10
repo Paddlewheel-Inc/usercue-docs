@@ -1,0 +1,68 @@
+---
+title: AI assist
+description: Optional help with summarizing long threads, suggesting tags, and drafting changelog entries, using any OpenAI-compatible model you choose.
+sidebarTitle: AI assist
+author: brennanp
+---
+
+AI assist is off until you set it up, and UserCue works fully without it. When it is on, it helps staff with three jobs. It never publishes, tags, or changes anything on its own. It suggests, and a person confirms.
+
+| Feature | Where | What it does |
+| --- | --- | --- |
+| Summarize thread | Triage panel on a suggestion | A short summary of a long suggestion and its comments |
+| Suggest tags | Triage panel on a suggestion | Picks up to three of your existing tags that fit |
+| Draft changelog | [Changelog](/changelog) editor | Writes a starting entry from the suggestions linked to it |
+
+You bring the model. UserCue does not ship with one and has no AI service of its own.
+
+## Set it up
+
+In Settings, open Integrations, then AI assist.
+
+| Field | Example | Notes |
+| --- | --- | --- |
+| Provider URL | `https://api.openai.com/v1` | The base URL of an OpenAI-compatible API, ending before `/chat/completions` |
+| Model | `gpt-4o-mini` | The model name the provider expects |
+| API key | `sk-...` | Optional for local models. Stored encrypted and never shown again. |
+
+Turn on the checkbox and save. UserCue will not let you turn it on without a URL and a model.
+
+### Providers
+
+Anything that implements the Chat Completions API works. UserCue calls `{provider URL}/chat/completions` with a `Bearer` key when you set one.
+
+| Provider | Provider URL |
+| --- | --- |
+| OpenAI | `https://api.openai.com/v1` |
+| OpenRouter | `https://openrouter.ai/api/v1` |
+| Groq | `https://api.groq.com/openai/v1` |
+| Ollama (local) | `http://localhost:11434/v1` |
+| LM Studio (local) | `http://localhost:1234/v1` |
+
+When UserCue runs in Docker, `localhost` means the container. Use `http://host.docker.internal:11434/v1`, or the host's address, to reach a model running on the host machine.
+
+## What is sent to the provider
+
+Only what a feature needs, sent when a staff member asks for it:
+
+- **Summarize**: the suggestion's title, body, board name, vote count, and up to 25 comments.
+- **Tags**: the suggestion's title, body, and the names of your tags.
+- **Changelog draft**: the titles and bodies of the linked suggestions.
+
+Nothing is sent in the background. Do not use a provider you would not trust with your customers' feedback, or use a local model.
+
+## Limits and errors
+
+- Each request times out after 45 seconds.
+- Staff can run up to 20 AI actions per minute.
+- If the provider returns an error, a staff member sees the provider's message, for example an invalid key, instead of a blank result.
+- Tag suggestions only use tags that already exist. The model cannot invent new ones.
+
+## Turn it off
+
+Uncheck the box and save. Your URL and model stay saved. To remove the key, clear the fields and save.
+
+## What to read next
+
+- [Triage tools](/workspace/triage) is where summaries and tag suggestions appear.
+- [Changelog](/changelog) explains linking suggestions before you draft.

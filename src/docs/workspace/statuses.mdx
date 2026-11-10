@@ -17,6 +17,19 @@ Every suggestion has one status.
 
 Staff with Manage posts change the status from the suggestion. Customers cannot.
 
+## Custom statuses
+
+The five statuses above are the built-in set. Under Settings, Workflow, you can rename each one, change its color and icon, and add your own, such as Under review or Shipped to beta.
+
+Every custom status belongs to one of the five categories: Open, Planned, In Progress, Complete, or Closed. The category decides how UserCue treats it.
+
+- The roadmap shows suggestions whose category is Planned, In Progress, or Complete.
+- Automatic assignment runs when a suggestion moves into a Planned category.
+- [Voter alerts](/settings/notifications#voter-alerts) go out when a suggestion reaches a Complete category.
+- The [vote limit](/settings/general#voting) counts suggestions in Open, Planned, and In Progress categories.
+
+Status IDs for custom statuses look like `custom_` followed by a random string. The REST API and [webhooks](/integrations/webhooks) use the ID, so read the status list from `GET /api/v1/workflow` instead of hard-coding it. See [Workflow in the API](/api#workflow).
+
 ## The status road and the activity log
 
 The hearts beside a suggestion are only the status. They show how far it has moved: Open, Planned, In Progress, then Complete or Closed. They do not name a person.
@@ -47,5 +60,6 @@ Removing someone from staff, or suspending them, takes them out of the automatic
 
 ## What to read next
 
+- [Triage tools](/workspace/triage) add impact, effort, and notes to each suggestion.
 - [General settings](/settings/general) is where assignment mode is configured.
 - [Workspace](/workspace) is the staff home and inbox.

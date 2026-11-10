@@ -1,0 +1,319 @@
+---
+title: Webhooks
+description: Send signed JSON to your own services when suggestions, comments, and changelog entries change. Includes payloads and verification code.
+sidebarTitle: Webhooks
+author: brennanp
+---
+
+A webhook is an HTTP `POST` that UserCue sends to a URL you control when something happens. Use it to open a ticket, post in a channel, update a CRM, or kick off a deploy. Webhooks live in [Integrations settings](/settings) and need Workspace settings to manage.
+
+## Create a webhook
+
+<Steps>
+  <Step title="Add the endpoint">
+    In Settings, open Integrations, then Webhooks. Enter a name and an `https` URL, and tick the events you want. `http` works for local testing. URLs cannot contain a username or password.
+  </Step>
+  <Step title="Copy the signing secret">
+    UserCue shows a secret that starts with `whsec_` once, when the webhook is created. Store it in your service's configuration. It cannot be shown again. If you lose it, delete the webhook and create a new one.
+  </Step>
+  <Step title="Send a test">
+    Choose Test. UserCue sends a `ping` event and shows the HTTP status your server returned.
+  </Step>
+</Steps>
+
+You can have up to 20 webhooks. Each one can listen to a different set of events, and can be paused without deleting it. The settings list shows the last status and error for every webhook, so a broken endpoint is easy to spot.
+
+## Events
+
+| Event | Sent when |
+| --- | --- |
+| `post.created` | Someone posts a suggestion from the board, the API, an embed, or email-in |
+| `post.status_changed` | Staff change a suggestion's status |
+| `post.merged` | A duplicate is [merged](/boards/duplicates) into another suggestion |
+| `comment.created` | Someone comments on a suggestion |
+| `changelog.published` | A [changelog entry](/changelog) goes public, including when a scheduled entry's time arrives |
+| `ping` | You choose Test. Always delivered to that webhook, whatever events it listens to. |
+
+## Request format
+
+Every delivery has the same envelope.
+
+```json
+{
+  "id": "0b6f6f0e-8d0a-4a72-9d8b-2a6f6c1d6c33",
+  "event": "post.created",
+  "createdAt": "2026-11-09T15:04:05.000Z",
+  "data": {}
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `id` | A unique ID for this delivery. A retry of the same delivery has the same ID, so you can use it to ignore repeats. |
+| `event` | The event name |
+| `createdAt` | When UserCue created the event, in ISO 8601 |
+| `data` | The event payload, described below |
+
+Headers on every request:
+
+| Header | Value |
+| --- | --- |
+| `Content-Type` | `application/json` |
+| `User-Agent` | `UserCue-Webhooks` |
+| `X-UserCue-Event` | The event name, for routing without parsing the body |
+| `X-UserCue-Timestamp` | Unix time in seconds when the request was signed |
+| `X-UserCue-Signature` | `sha256=` followed by the hex HMAC of the request, see [Verify the signature](#verify-the-signature) |
+
+### Payloads
+
+<Accordions>
+  <Accordion title="post.created">
+    ```json
+    {
+      "id": 42,
+      "title": "Add keyboard shortcuts",
+      "body": "Speed up common actions.",
+      "status": "open",
+      "board": "ideas",
+      "boardName": "Ideas",
+      "authorName": "Alex",
+      "voteCount": 1,
+      "commentCount": 0,
+      "createdAt": 1793556000,
+      "url": "https://feedback.example.com/post/42"
+    }
+    ```
+
+    `body` is plain text with the HTML removed. `createdAt` is a Unix timestamp in seconds.
+  </Accordion>
+  <Accordion title="post.status_changed">
+    The same fields as `post.created`, plus:
+
+    ```json
+    {
+      "previousStatus": "planned",
+      "changedBy": "Sam"
+    }
+    ```
+
+    `status` is the new status. Status values are the IDs from your [workflow](/workspace/statuses), so they can be custom.
+  </Accordion>
+  <Accordion title="post.merged">
+    ```json
+    {
+      "sourceId": 41,
+      "sourceTitle": "Keyboard shortcuts please",
+      "targetId": 42,
+      "targetTitle": "Add keyboard shortcuts",
+      "url": "https://feedback.example.com/post/42"
+    }
+    ```
+
+    The source post no longer exists. `url` points at the target.
+  </Accordion>
+  <Accordion title="comment.created">
+    ```json
+    {
+      "id": 108,
+      "postId": 42,
+      "postTitle": "Add keyboard shortcuts",
+      "authorName": "Sam",
+      "isTeam": true,
+      "body": "We are starting on this next week.",
+      "url": "https://feedback.example.com/post/42#comment-108"
+    }
+    ```
+
+    `isTeam` is `true` when a staff member wrote the comment.
+  </Accordion>
+  <Accordion title="changelog.published">
+    ```json
+    {
+      "id": 7,
+      "title": "v1.4.0",
+      "body": "New Dark mode for the embed widget",
+      "postId": 42,
+      "publishedAt": 1793559600,
+      "url": "https://feedback.example.com/changelog/7"
+    }
+    ```
+
+    `postId` is `null` when the entry is not linked to a suggestion. `url` is `null` if `PUBLIC_URL` is not set.
+  </Accordion>
+  <Accordion title="ping">
+    ```json
+    { "message": "UserCue webhook test" }
+    ```
+  </Accordion>
+</Accordions>
+
+## Verify the signature
+
+Always verify the signature before you trust a request. Otherwise anyone who finds your URL can send you fake events.
+
+The signature is an HMAC-SHA256 of `{timestamp}.{rawBody}`, keyed with your webhook secret. Use the full secret string, including the `whsec_` prefix.
+
+1. Read the raw request body as text. Do not parse and re-serialize the JSON, because that can change the bytes.
+2. Reject the request if `X-UserCue-Timestamp` is more than five minutes from now. This stops replays.
+3. Compute `HMAC_SHA256(secret, timestamp + "." + rawBody)` as a hex string.
+4. Compare it to the value after `sha256=` with a constant-time comparison.
+
+<Tabs items={["Node.js", "Python", "Go"]}>
+  <Tab value="Node.js">
+    ```js
+    import { createHmac, timingSafeEqual } from "node:crypto";
+
+    const TOLERANCE_SECONDS = 300;
+
+    export function verifyUserCue(secret, headers, rawBody) {
+      const timestamp = headers["x-usercue-timestamp"];
+      const signature = headers["x-usercue-signature"] ?? "";
+      if (Math.abs(Date.now() / 1000 - Number(timestamp)) > TOLERANCE_SECONDS) return false;
+
+      const expected = createHmac("sha256", secret)
+        .update(`${timestamp}.${rawBody}`)
+        .digest("hex");
+      const given = signature.replace(/^sha256=/, "");
+
+      const a = Buffer.from(expected);
+      const b = Buffer.from(given);
+      return a.length === b.length && timingSafeEqual(a, b);
+    }
+    ```
+
+    With Express, keep the raw body for the route:
+
+    ```js
+    import express from "express";
+
+    const app = express();
+
+    app.post("/usercue", express.text({ type: "application/json" }), (req, res) => {
+      if (!verifyUserCue(process.env.USERCUE_WEBHOOK_SECRET, req.headers, req.body)) {
+        return res.sendStatus(401);
+      }
+      const event = JSON.parse(req.body);
+      console.log(event.event, event.data.title);
+      res.sendStatus(200);
+    });
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import hashlib
+    import hmac
+    import time
+
+    TOLERANCE_SECONDS = 300
+
+
+    def verify_usercue(secret: str, headers: dict, raw_body: bytes) -> bool:
+        timestamp = headers.get("X-UserCue-Timestamp", "")
+        signature = headers.get("X-UserCue-Signature", "")
+        try:
+            if abs(time.time() - int(timestamp)) > TOLERANCE_SECONDS:
+                return False
+        except ValueError:
+            return False
+
+        signed = timestamp.encode() + b"." + raw_body
+        expected = hmac.new(secret.encode(), signed, hashlib.sha256).hexdigest()
+        given = signature.removeprefix("sha256=")
+        return hmac.compare_digest(expected, given)
+    ```
+
+    With Flask:
+
+    ```python
+    import os
+
+    from flask import Flask, request
+
+    app = Flask(__name__)
+
+
+    @app.post("/usercue")
+    def usercue():
+        if not verify_usercue(os.environ["USERCUE_WEBHOOK_SECRET"], request.headers, request.get_data()):
+            return "", 401
+        event = request.get_json()
+        print(event["event"], event["data"].get("title"))
+        return "", 200
+    ```
+  </Tab>
+  <Tab value="Go">
+    ```go
+    package main
+
+    import (
+    	"crypto/hmac"
+    	"crypto/sha256"
+    	"encoding/hex"
+    	"io"
+    	"math"
+    	"net/http"
+    	"os"
+    	"strconv"
+    	"strings"
+    	"time"
+    )
+
+    const toleranceSeconds = 300
+
+    func verifyUserCue(secret, timestamp, signature string, body []byte) bool {
+    	sent, err := strconv.ParseInt(timestamp, 10, 64)
+    	if err != nil || math.Abs(float64(time.Now().Unix()-sent)) > toleranceSeconds {
+    		return false
+    	}
+
+    	mac := hmac.New(sha256.New, []byte(secret))
+    	mac.Write([]byte(timestamp + "."))
+    	mac.Write(body)
+    	expected := hex.EncodeToString(mac.Sum(nil))
+
+    	given := strings.TrimPrefix(signature, "sha256=")
+    	return hmac.Equal([]byte(expected), []byte(given))
+    }
+
+    func handler(w http.ResponseWriter, r *http.Request) {
+    	body, _ := io.ReadAll(r.Body)
+    	ok := verifyUserCue(
+    		os.Getenv("USERCUE_WEBHOOK_SECRET"),
+    		r.Header.Get("X-UserCue-Timestamp"),
+    		r.Header.Get("X-UserCue-Signature"),
+    		body,
+    	)
+    	if !ok {
+    		w.WriteHeader(http.StatusUnauthorized)
+    		return
+    	}
+    	w.WriteHeader(http.StatusOK)
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Delivery and retries
+
+- Respond with any `2xx` status within 8 seconds. Do slow work after you respond.
+- If your server times out, cannot be reached, or returns a `5xx`, UserCue retries once after about 1.5 seconds. Other failures, such as a `4xx`, are not retried.
+- Redirects are not followed. Give UserCue the final URL.
+- Deliveries are sent as events happen, with no queue behind them. If your endpoint is down for longer than a retry, that event is not replayed. Use the `id` field to ignore the occasional repeat, and reconcile with the [API](/api) if you need to catch up after downtime.
+- Events from different webhooks are delivered independently. A slow endpoint does not hold up the others.
+
+## Use with Zapier, Make, and n8n
+
+Create a "Catch Hook" or webhook trigger in your tool and paste its URL as the webhook URL. These tools do not verify HMAC signatures for you, so treat the URL as a secret. Send a Test from UserCue so the tool learns the shape of the data, then map the fields from a real `post.created` event.
+
+## Test locally
+
+Expose a local server with a tunnel such as `cloudflared tunnel --url http://localhost:3000`, then add the tunnel URL as the webhook. Use Test to confirm your verification code before you subscribe to real events.
+
+## Manage webhooks from the API
+
+Webhooks can be created, updated, deleted, and tested with an API key that has `manage_settings`. See [Webhooks in the API reference](/api#webhooks).
+
+## What to read next
+
+- [Chat channels](/settings/notifications#chat-channels) post to Slack, Discord, and Teams without any code.
+- [Audit log](/settings/audit-log) records every change to a webhook.

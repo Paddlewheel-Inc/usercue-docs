@@ -1,0 +1,97 @@
+---
+title: Changelog markdown
+description: Every piece of markdown the changelog editor understands, including section headings that tag your bullets automatically.
+sidebarTitle: Markdown reference
+author: brennanp
+---
+
+Changelog entries accept a small, predictable dialect of markdown. It is converted to sanitized HTML on the server, so what you write is what readers get. Anything it does not recognize stays as plain text.
+
+## Sections
+
+A heading named `New`, `Changed`, `Fixed`, or `Removed` starts a section. Every bullet after it gets a colored chip with that name, until the next heading.
+
+```md
+## New
+- Saved views for the admin list
+- Weekly digest email
+
+## Fixed
+- Votes no longer jump after a refresh
+```
+
+- The match is not case sensitive, and a trailing colon is fine: `## fixed:` works.
+- Any heading level from `#` to `###` can be a section heading.
+- A `###` heading that is not a section name keeps the current section. A `#` or `##` heading that is not a section name ends it.
+- Blank lines directly after a section heading are skipped, so the first bullet sits right under the title.
+
+### Tag a single line
+
+Put the name in square brackets at the start of a bullet, or at the start of a line, to tag just that line:
+
+```md
+- [New] Dark mode for the embed widget
+- [Fixed] Search ignored accents
+[Removed] The legacy import screen
+```
+
+A tag on a bullet wins over the section it sits in.
+
+## Text styles
+
+| You write | You get |
+| --- | --- |
+| `**bold**` | **bold** |
+| `*italic*` or `_italic_` | *italic* |
+| `__underline__` | underlined text |
+| `==highlight==` | highlighted text |
+| `[label](https://example.com)` | a link |
+| `[label](example.com/docs)` | a link, with `https://` added |
+| `![alt](https://example.com/shot.png)` | an image |
+
+Links accept `http`, `https`, and `mailto` addresses, plus links to other suggestions. Images accept `http` and `https` URLs and files uploaded to your workspace. Anything else, including `javascript:` links, is left as text.
+
+## Lists
+
+Bullets start with `-`, `*`, or `+`. Numbered lists start with `1.` or `1)`. Inside a section, bullets become chip lines instead of list items.
+
+```md
+1. Open Settings
+2. Choose Integrations
+3. Add a webhook
+```
+
+## Headings
+
+`#`, `##`, and `###` make headings. Level one renders the same as level two, since the entry title is already the page heading.
+
+## Spacing
+
+Each line becomes its own line in the entry, so you do not need two spaces at the end to force a break. A blank line adds visible space between paragraphs. A single line with no other content renders as plain inline text.
+
+## Not supported
+
+Code spans, code blocks, tables, block quotes, and nested lists are not part of the dialect. They stay as the text you typed. Raw HTML is escaped.
+
+## A full example
+
+```md
+## New
+- **Merge duplicates.** Fold a repeated request into the original and keep every vote
+- [Saved views](https://docs.example.com/workspace/filters) for the admin list
+
+## Changed
+- Notifications now live under their own settings tab
+
+## Fixed
+- ==Votes== no longer jump after a refresh
+- [Removed] The old CSV import screen
+
+### Upgrading
+Pull the new image and restart. There are no breaking changes.
+```
+
+## What to read next
+
+- [Changelog](/changelog) covers drafts, scheduling, and linking suggestions.
+- [Changelog in the API](/api#changelog) shows how to send `markdown` from a script.

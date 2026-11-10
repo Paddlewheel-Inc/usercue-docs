@@ -17,7 +17,7 @@ A new database has no accounts. The first visit sends you to `/setup`.
     Under Boards, choose New board and type a name, up to 40 characters. UserCue builds a slug from that name and uses it in the public URL, for example `/board/feature-requests`. Renaming the board later changes the label only. The slug, and any links that use it, stay the same.
   </Step>
   <Step title="Invite staff">
-    Settings, then General, then Staff. Enter their email and choose Invite. You always get a registration link. If invite email is set up, UserCue sends the link as well. They pick their own password from that link and then sign in at `/login`.
+    Settings, then Team. Enter their email and choose Invite. You always get a registration link. If invite email is set up, UserCue sends the link as well. They pick their own password from that link and then sign in at `/login`.
 
     A new invite joins as Staff. That role can open the workspace, manage suggestions, and manage boards. It cannot change settings, users, or roles until you give those permissions.
   </Step>
@@ -30,10 +30,13 @@ A new database has no accounts. The first visit sends you to `/setup`.
 
 A few settings are worth deciding up front. Each one is explained on its own page.
 
-- [Color and guests](/settings/general). Pink is the default accent. Guests can post with only a name until you turn that off.
+- [Guests](/settings/general#feedback). Guests can post with only a name until you turn that off. Color and the logo are under Branding.
 - [Assignment](/settings/general#assignment). Off, manual, or automatic when a suggestion becomes Planned.
 - [Sign-in](/oauth). GitHub, Discord, and Google. Leave them off and the board still works with guest names, or with email and password for staff.
 - [Tags](/boards/tags). Optional labels you apply to suggestions so a list is easier to scan.
+- [Triage tools](/workspace/triage). Impact and effort scoring is on by default. Turn it off in General if your team does not use it.
+- [Email](/settings/notifications#email-delivery). Needed for invite links by email, voter alerts, and the weekly digest.
+- [Webhooks](/integrations/webhooks) and [chat channels](/settings/notifications#chat-channels), if your team lives in Slack, Discord, or Teams.
 
 ## Local install
 
@@ -52,4 +55,5 @@ Set `PUBLIC_URL` to the origin customers use, including `https://`, before you t
 
 - [Installation](/getting-started/installation) runs UserCue on your own machine or with Docker.
 - [Environment variables](/getting-started/environment) explains each setting in `.env`.
+- [Integrations](/integrations) connects UserCue to your site, inbox, and chat.
 - [Boards](/boards) group suggestions on the public board.

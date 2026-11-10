@@ -1,0 +1,40 @@
+---
+title: Audit log
+description: A record of who changed what in the workspace, kept for 400 days.
+sidebarTitle: Audit log
+author: brennanp
+---
+
+The audit log answers "who changed that?". It lists the sensitive things staff do, newest first, with the person's name and the time. You need Workspace settings to open it.
+
+## What is recorded
+
+| Action | When it is logged |
+| --- | --- |
+| `settings.updated` | Workspace settings were saved. The entry lists the fields that changed, never their values. |
+| `webhook.created`, `webhook.updated`, `webhook.deleted` | A [webhook](/integrations/webhooks) was added, edited, or removed. |
+| `api_key.created`, `api_key.deleted` | An API key was created or revoked. |
+| `staff.invited`, `staff.promoted`, `staff.removed` | A [staff invite](/settings/staff) was sent, an existing account was promoted, or someone lost staff access. |
+| `user.updated`, `user.deleted` | An account was changed, suspended, or deleted. |
+| `role.created`, `role.updated`, `role.deleted` | A [role](/settings/roles) changed. |
+| `post.merged`, `post.deleted` | A suggestion was [merged](/boards/duplicates) or deleted. |
+| `import.posts` | A [feedback import](/integrations/import) finished. The entry has the post count. |
+
+Entries are written for actions made in the workspace and through the [REST API](/api). An action by a script shows the name of the key's owner.
+
+## Secrets are never logged
+
+An entry says that a setting changed, not what it changed to. API keys, SMTP passwords, webhook URLs, and signing secrets do not appear in the log.
+
+## Retention
+
+Entries are deleted after 400 days. The log is append-only: there is no way to edit or remove an entry from the app.
+
+## Read it from the API
+
+`GET /api/v1/integrations/audit` returns pages of entries and needs a key with `manage_settings`. See [Audit log in the API reference](/api#audit-log).
+
+## What to read next
+
+- [Roles](/settings/roles) controls who can change settings in the first place.
+- [Webhooks](/integrations/webhooks) can feed your own monitoring.

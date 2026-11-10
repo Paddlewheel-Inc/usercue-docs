@@ -1,0 +1,85 @@
+---
+title: Import feedback
+description: Move suggestions, votes, authors, tags, and dates from Canny, Featurebase, Productboard, or any CSV or JSON export.
+sidebarTitle: Import
+author: brennanp
+---
+
+Import brings your existing backlog into UserCue so you do not start with an empty board. It works with exports from Canny, Featurebase, Productboard, and any tool that can save CSV or JSON. You need Workspace settings.
+
+## Import a file
+
+<Steps>
+  <Step title="Export from your old tool">
+    Export your posts as CSV or JSON. Keep the vote counts, authors, tags, and dates if the tool offers them.
+  </Step>
+  <Step title="Choose the file">
+    In Settings, open Integrations, then Import feedback, and choose the file. It is read in your browser, so the file is not uploaded as a whole. Rows are sent to your server in small batches.
+  </Step>
+  <Step title="Check the column mapping">
+    UserCue guesses which column is which. Review the mapping and fix anything it got wrong. Only the title is required.
+  </Step>
+  <Step title="Import">
+    Start the import. You see how many rows were created and how many were skipped.
+  </Step>
+</Steps>
+
+## Columns
+
+UserCue recognizes these headers, ignoring case. Any other header can be mapped by hand.
+
+| Field | Recognized headers |
+| --- | --- |
+| Title (required) | `title`, `post title`, `name`, `feature`, `feature name`, `idea`, `subject`, `summary` |
+| Details | `details`, `description`, `body`, `content`, `text`, `post details`, `feature description` |
+| Status | `status`, `state` |
+| Board | `board`, `board name`, `category`, `project`, `product` |
+| Author | `author`, `author name`, `user`, `user name`, `created by`, `creator`, `submitted by`, `customer` |
+| Author email | `author email`, `email`, `user email`, `creator email`, `customer email`, `submitter email` |
+| Votes | `votes`, `vote count`, `votes count`, `number of votes`, `upvotes`, `likes`, `score` |
+| Created | `created`, `created at`, `created date`, `date created`, `creation date`, `date`, `submitted`, `posted at` |
+| Tags | `tags`, `tag`, `labels` |
+
+CSV files can be separated by commas, semicolons, or tabs. UserCue detects which from the first line.
+
+## How rows are matched
+
+| Field | What happens |
+| --- | --- |
+| Status | Matched to your [workflow](/workspace/statuses) by ID or name. An unknown label such as `Under Review` or `Shipped` is guessed into the nearest category, so most files import cleanly. |
+| Board | Matched by name, using the same slug UserCue builds for board URLs. A board that does not exist is created. A blank board uses your first board. |
+| Tags | Matched by name, ignoring case. Missing tags are created. A suggestion keeps up to 8. |
+| Author email | If it matches a UserCue account, the suggestion is attributed to that person. Otherwise the suggestion shows the author name, or `Imported`. |
+| Votes | Added as that many votes on the suggestion. The voters are anonymous. |
+| Created | Kept as the suggestion's date, so the board history looks right. Use a date or a Unix timestamp. |
+
+## Safe to repeat
+
+If a row has a created date, UserCue skips it when a suggestion on the same board already has the same title and date. If a run is interrupted, import the same file again and only the missing rows are added.
+
+Rows without a date cannot be checked this way. Importing the same dateless file twice creates duplicates, so clean those up with [merge](/boards/duplicates).
+
+## Limits
+
+| Limit | Value |
+| --- | --- |
+| Rows per file | 20,000 |
+| Rows per request | 200 |
+| Votes on one suggestion | 100,000 |
+
+## What imports do not do
+
+- No notifications. Imports do not send chat messages, emails, or webhooks, so a large import never spams your team.
+- No attachments, comments, or changelog entries. Only suggestions come across.
+- No automatic assignment. Imported suggestions start unassigned.
+
+Each import is recorded in the [audit log](/settings/audit-log) as `import.posts` with the number of suggestions created.
+
+## Import with the API
+
+The settings page uses `POST /api/v1/integrations/import/posts` under the hood. You can call it yourself from a script. See [Import in the API reference](/api#import-posts).
+
+## What to read next
+
+- [Similar posts and merging](/boards/duplicates) cleans up duplicates after an import.
+- [Tags](/boards/tags) are created for you from the tags column.

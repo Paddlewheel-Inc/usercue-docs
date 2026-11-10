@@ -1,0 +1,85 @@
+---
+title: Changelog
+description: Publish release notes, schedule them, link them to the suggestions you shipped, and tell the people who asked.
+sidebarTitle: Changelog
+author: brennanp
+---
+
+The changelog is where you tell people what you shipped. Each entry has a title, a body, an optional banner image, and an optional link to the suggestion it delivers. Turn it on in [General settings](/settings/general#changelog).
+
+## Write an entry
+
+Staff write entries on the public Changelog page at `/changelog`. While signed in as staff, the page shows a button to write an update, and Drafts and Scheduled tabs next to Published. The editor has a Rich text mode and a Markdown mode. Switch to [Markdown](/changelog/markdown) and a whole release can be one block of text. Pasting markdown into the rich editor is converted for you.
+
+```md
+## New
+- Merge duplicate suggestions into one
+- Weekly digest email for your team
+
+## Fixed
+- Votes no longer jump after a refresh
+```
+
+`## New`, `## Changed`, `## Fixed`, and `## Removed` headings tag every bullet under them with a colored chip. You do not repeat the tag on each line. See the [markdown reference](/changelog/markdown) for everything else the editor understands, including bold, links, images, and highlights.
+
+## Draft, schedule, publish
+
+Every entry is in one of three states.
+
+| State | What happens |
+| --- | --- |
+| Draft | Only staff see it, in the Drafts tab. No notifications, no webhook, no RSS item. |
+| Scheduled | Staff see it in the Scheduled tab with its time. It goes public when that time passes. |
+| Published | Public now. Keeping an entry published keeps its original date. |
+
+In the editor, the Publication menu offers Save as draft, Publish now, and Schedule for later. Scheduling asks for a date and time.
+
+A scheduled time must be in the future. When an entry goes public, UserCue sends the [`changelog.published` webhook](/integrations/webhooks) and, if the entry is linked to a suggestion, tells that suggestion's voters. Both happen once per entry, even if you edit it later.
+
+## Link an entry to a suggestion
+
+Pick a suggestion in the entry. Three things follow:
+
+- The entry shows a link to the suggestion, and the suggestion shows a Shipped in badge that points back.
+- When the entry goes public, people who voted on the suggestion are told it shipped, if [voter alerts](/settings/notifications#voter-alerts) are on.
+- Contributors you credit show as avatars on the entry.
+
+<Callout title="Shipped notices send once">
+  Voters hear about a suggestion one time. If you set the suggestion to Complete and later publish a linked entry, they are not notified twice.
+</Callout>
+
+## Comments and reactions
+
+Comments and reactions are independent switches in General settings. Reactions are Up, Party, Heart, and Rocket, one of each per person. Turn both off for a read-only changelog.
+
+## RSS
+
+When the changelog is on, the feed is at `/api/changelog/rss`. The full URL is shown in General settings so you can copy it into a feed reader or an automation.
+
+## Draft with AI
+
+If [AI assist](/integrations/ai) is set up, link the suggestions you shipped and choose Draft from linked feedback with AI. UserCue writes a starting point from those suggestions. It is text for you to edit, and it is never published for you.
+
+## Publish from the API
+
+Entries can be created from CI with an API key that has `dashboard`. Send `markdown` and the server renders it the same way the editor does:
+
+```bash
+curl --request POST \
+  --url 'https://feedback.example.com/api/v1/changelog' \
+  --header 'Authorization: Bearer uc_your_api_key' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "title": "v1.4.0",
+    "markdown": "## New\n- Dark mode for the embed widget\n\n## Fixed\n- Search ignored accents",
+    "publicationStatus": "published"
+  }'
+```
+
+See [Changelog in the API reference](/api#changelog) for scheduling and every field.
+
+## What to read next
+
+- [Markdown reference](/changelog/markdown) lists every supported syntax.
+- [Voter alerts](/settings/notifications#voter-alerts) controls who hears about shipped suggestions.
+- [Webhooks](/integrations/webhooks) can post each new entry to your own tools.
