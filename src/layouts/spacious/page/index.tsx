@@ -94,13 +94,13 @@ export function DocsPage({
       <slots.toc.provider single={single} toc={tocEnabled || tocPopoverEnabled ? toc : []}>
         <div className="sticky top-[calc(var(--fd-banner-height,0px)+var(--fd-header-height))] z-30 [grid-area:toc-popover] self-start md:hidden">
           {tocPopoverEnabled && <slots.toc.popover {...tocPopoverProps} />}
-          <div className="absolute inset-x-2 top-full h-[calc(var(--fd-layout-height)-var(--fd-header-height)-100%)] rounded-t-2xl border-x border-t outline-8 outline-fd-card [clip-path:inset(0_-8px_-8px)] bg-origin-border bg-linear-to-b from-fd-background to-transparent to-[16px] pointer-events-none" />
+          <div className="absolute inset-x-2 top-full h-[calc(var(--fd-layout-height)-var(--fd-header-height)-100%)] rounded-t-3xl outline-8 outline-fd-card [clip-path:inset(0_-8px_-8px)] bg-origin-border bg-linear-to-b from-fd-background to-transparent to-[16px] pointer-events-none" />
         </div>
         <div
           // a new page starts from the top of panel
           key={pathname}
           id="nd-page-panel"
-          className="@container relative flex flex-col min-w-0 min-h-0 [grid-area:main] mx-2 bg-fd-background md:ms-0 md:my-2 md:overflow-clip md:rounded-2xl md:border md:shadow-sm print:overflow-visible"
+          className="@container relative flex flex-col min-w-0 min-h-0 [grid-area:main] mx-2 bg-fd-background md:ms-0 md:my-2 md:overflow-clip md:rounded-3xl print:overflow-visible"
         >
           <header
             className={cn(

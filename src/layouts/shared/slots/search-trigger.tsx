@@ -57,7 +57,7 @@ export function FullSearchTrigger({ hideIfDisabled, ...props }: FullSearchTrigge
       data-search-full=""
       {...props}
       className={cn(
-        'inline-flex items-center gap-2 rounded-lg border bg-fd-secondary/50 p-1.5 ps-2 text-sm text-fd-muted-foreground transition-colors hover:bg-fd-accent hover:text-fd-accent-foreground',
+        'inline-flex items-center gap-2 rounded-full bg-fd-muted/70 p-1.5 ps-2 text-sm text-fd-muted-foreground transition-colors hover:bg-fd-accent hover:text-fd-accent-foreground',
         props.className,
       )}
     >
@@ -65,7 +65,7 @@ export function FullSearchTrigger({ hideIfDisabled, ...props }: FullSearchTrigge
       {t('Search')}
       <div className="ms-auto inline-flex gap-0.5">
         {hotKey.map((k, i) => (
-          <kbd key={i} className="rounded-md border bg-fd-background px-1.5">
+          <kbd key={i} className="rounded-md bg-fd-background px-1.5">
             {k.display}
           </kbd>
         ))}

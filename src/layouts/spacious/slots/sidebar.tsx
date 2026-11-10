@@ -27,11 +27,11 @@ export type SidebarProps = ComponentProps<'aside'>;
 
 /** the hover fill comes from the gliding block of `SidebarItems` */
 const itemVariants = cva(
-  'relative flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-start wrap-anywhere outline-none transition-colors focus-visible:ring-2 focus-visible:ring-fd-ring [&_svg]:size-4 [&_svg]:shrink-0',
+  'relative flex w-full items-center gap-3 rounded-xl px-3 py-2 text-start wrap-anywhere outline-none transition-colors focus-visible:ring-2 focus-visible:ring-fd-ring [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       active: {
-        true: 'bg-fd-primary/10 text-fd-primary',
+        true: 'bg-fd-primary/10 font-medium text-fd-primary',
         false: 'text-fd-muted-foreground hover:text-fd-accent-foreground',
       },
     },
@@ -39,7 +39,7 @@ const itemVariants = cva(
   },
 );
 
-const activeLine = <span className="absolute -start-1 inset-y-2 w-px bg-fd-primary" />;
+const activeLine = <span className="absolute -start-1 inset-y-2 w-0.5 rounded-full bg-fd-primary" />;
 
 export function SidebarProvider(props: SidebarProviderProps) {
   return <Base.SidebarProvider {...props} />;
@@ -405,7 +405,7 @@ function SidebarFolderContent({
 }: ComponentProps<typeof Base.SidebarFolderContent>) {
   return (
     <Base.SidebarFolderContent {...props} className="relative flex flex-col ms-3 ps-1">
-      <span className="absolute start-0 inset-y-1 w-px bg-fd-border" />
+      <span className="absolute start-0 inset-y-1 w-px rounded-full bg-fd-muted" />
       {children}
     </Base.SidebarFolderContent>
   );
