@@ -1,0 +1,59 @@
+---
+title: Tasks
+description: Plan internal work with a manager and members, track what is blocked, and keep everyone posted with comments.
+sidebarTitle: Tasks
+author: brennanp
+---
+
+Tasks are for your team only. Nothing here is visible on the public board, the roadmap, or the changelog. Use them to plan the work behind your requests and to see who is doing what.
+
+A task has these fields.
+
+| Field | Options |
+| --- | --- |
+| Status | To do, In progress, Blocked, Done, or Cancelled |
+| Priority | None, Low, Medium, High, or Urgent |
+| Manager | The staff member who owns the outcome, or no one |
+| Members | Any number of staff who are working on it |
+| Health | None, On track, At risk, or Delayed. Set it from the properties card. It clears when the task is done or cancelled |
+| Due date | Optional, picked from a calendar. Open tasks past their date show in red |
+| Requests | Link any number of requests the task is about |
+
+**My tasks** in the sidebar lists the tasks you manage or are a member of, soonest due first, with a count of open tasks. Use the filters to switch to everyone's tasks or tasks with no manager and no members, and turn on Finished to see completed work. Your open tasks also show on the Overview.
+
+## Manager and members
+
+The properties card on every task holds the people involved. Members are the people working on it, and you can add as many as you need. The manager is the person to ask about it. Choose **Add member** at the bottom of the card to add more staff, and the x beside a name to remove them. Only staff can be picked. Each task row shows its members as a stack of avatars.
+
+## Blocked tasks
+
+Set a task to Blocked and a **Blocked by** section appears in the task's properties card. Write why it is stuck, and add the tasks it is waiting on.
+
+- Adding a blocker to a task that is To do or In progress moves it to Blocked for you.
+- Blockers that are done or cancelled are crossed out, and the list shows how many are still open as "Waiting on 2".
+- The blocking task shows the tasks it holds up under Blocking.
+- Two tasks can't wait on each other, directly or through a chain of other tasks.
+- When someone finishes a task, the manager and members of blocked tasks that were waiting on it are notified.
+- Choose Unblock, or move the task to any other status, and the reason and blockers are cleared.
+
+## Activity
+
+Every task has a timeline. Status changes, members being added or removed, and blockers being added or removed are recorded automatically. Anyone on staff can leave a comment. The comment box also has Status and Health pickers set to the task's current values. Leave them alone for a plain comment, or change one and the task is updated when you post, with the status change recorded in the timeline.
+
+## Notifications
+
+The notification bell tells you when:
+
+- You are added to a task as a member, or made its manager.
+- Someone comments on a task you manage, belong to, or created.
+- A task that was blocking one of yours is finished.
+
+You are never notified about your own actions.
+
+## Permissions
+
+Every staff member can view, create, and edit tasks, and comment. Deleting a task is limited to the person who created it and anyone with the **Manage tasks** permission, which also lets them delete other people's task comments. It is included in new Staff roles, and existing roles that can manage posts receive it when you upgrade. Change it any time under **Settings → Roles**.
+
+## Use it from the API
+
+Tasks are available at `/api/v1/tasks` with the same key permissions as the app. See [the API reference](/api#tasks).

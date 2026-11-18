@@ -1,3 +1,10 @@
 {
-  "pages": ["index", "statuses", "triage", "filters", "roadmap"]
+  "pages": [
+    "index",
+    "statuses",
+    "triage",
+    "tasks",
+    "filters",
+    "roadmap"
+  ]
 }

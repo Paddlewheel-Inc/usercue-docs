@@ -131,6 +131,7 @@ Permission IDs:
 | `dashboard` | Staff workspace, changelog management, and staff-only post-comment deletion |
 | `manage_posts` | Edit or delete posts and manage tags |
 | `manage_boards` | Create, rename, and delete boards |
+| `manage_tasks` | Delete tasks and task comments that other people wrote |
 | `manage_settings` | Change general settings and configure sign-in providers |
 | `manage_branding` | Change workspace branding |
 | `manage_users` | View, change, and delete accounts; also read roles |
@@ -164,10 +165,11 @@ Error responses generally include an `error` string. Validation responses may in
 
 | Area | Methods and paths | Permission |
 | --- | --- | --- |
-| Boards | `GET /boards`, `POST /boards`, `PATCH /boards/:slug`, `DELETE /boards/:slug` | Read: API key; write: `manage_boards` |
+| Boards | `GET /boards`, `POST /boards`, `PATCH /boards/:slug`, `POST /boards/:slug/wipe`, `DELETE /boards/:slug` | Read: API key; write: `manage_boards` |
 | Me | `GET /me` | API key |
 | Posts | `GET /posts`, `GET /posts/counts`, `GET /posts/similar`, `GET /posts/budget`, `POST /posts`, `GET /posts/:id`, `POST /posts/:id/vote`, `GET /posts/:id/voters`, `POST /posts/:id/comments`, `DELETE /posts/:id/comments/:commentId`, `PATCH /posts/:id`, `POST /posts/:id/merge`, `DELETE /posts/:id` | Read and public interactions: API key; comment deletion: `dashboard`; post updates, merging, and deletion: `manage_posts` |
 | Triage | `GET /posts/:id/triage`, `POST /posts/:id/notes`, `DELETE /posts/:id/notes/:noteId` | `dashboard` |
+| Tasks | `GET /tasks`, `GET /tasks/staff`, `GET /tasks/:id`, `POST /tasks`, `PATCH /tasks/:id`, `DELETE /tasks/:id`, `PUT/DELETE /tasks/:id/blockers/:blockerId`, `PUT/DELETE /tasks/:id/posts/:postId`, `PUT/DELETE /tasks/:id/members/:userId`, `POST /tasks/:id/activity`, `DELETE /tasks/:id/activity/:activityId` | `dashboard` |
 | Workflow | `GET /workflow`, `POST /workflow`, `PATCH /workflow/:id` | Read: API key; write: `manage_settings` |
 | Tags | `GET /tags`, `POST /tags`, `PATCH /tags/:id`, `DELETE /tags/:id` | Read: API key; write: `manage_posts` or `manage_settings` |
 | Settings | `GET /settings`, `PATCH /settings`, `PATCH /settings/branding` | `dashboard`, `manage_settings`, `manage_branding` respectively |
@@ -279,7 +281,17 @@ Returns the new board object with HTTP `201`.
 
 `DELETE /boards/:slug` — **`manage_boards`**
 
-Returns `{ "ok": true }` when deleted, or `404` if the board does not exist.
+Returns `{ "ok": true }` when deleted, or `404` if the board does not exist. This also deletes every post on the board.
+
+### Wipe a board
+
+`POST /boards/:slug/wipe` — **`manage_boards`**
+
+```json
+{ "confirm": "product-ideas" }
+```
+
+Deletes every post on the board, along with its votes, comments, notes, and tags, but keeps the board itself. `confirm` must match the board slug exactly, otherwise the request fails with `400`. Changelog entries linked to those posts are kept. Returns `{ "ok": true, "removed": 42 }`, or `404` if the board does not exist. The action is recorded in the [audit log](/settings/audit-log).
 
 ## Feedback posts
 
@@ -541,6 +553,92 @@ These endpoints need `dashboard`. They return `404` for a post where [triage](/w
 `DELETE /posts/:id/notes/:noteId` — **`dashboard`**
 
 A key can delete notes its owner wrote. `manage_posts` can delete anyone's. Returns `{ "ok": true }`, `403` if the note belongs to someone else, or `404`.
+
+## Tasks
+
+These endpoints are staff only and need `dashboard`. See [Tasks](/workspace/tasks) for how they work in the app. Dates are `YYYY-MM-DD` strings, or an empty string to clear one.
+
+### List tasks
+
+`GET /tasks` — **`dashboard`**
+
+| Query parameter | Allowed values | Default |
+| --- | --- | --- |
+| `person` | `me`, `none`, or a staff user ID. A person matches tasks they manage or belong to, and `none` matches tasks with no manager and no members | Everyone |
+| `status` | `todo`, `in_progress`, `blocked`, `done`, `cancelled`, or `open` (to do, in progress, and blocked) | All |
+
+Returns up to 200 tasks, finished ones last, then by due date and priority.
+
+```json
+{
+  "id": 14,
+  "title": "Write the migration guide",
+  "description": "",
+  "status": "in_progress",
+  "priority": "high",
+  "health": "on_track",
+  "blockedReason": "",
+  "openBlockers": 0,
+  "dueDate": "2026-11-20",
+  "overdue": false,
+  "manager": { "id": 4, "name": "Riley", "avatarUrl": null },
+  "members": [{ "id": 2, "name": "Sam", "avatarUrl": null }],
+  "creatorName": "Alex",
+  "createdAt": 1793000000,
+  "updatedAt": 1793556000,
+  "completedAt": null
+}
+```
+
+`openBlockers` counts the tasks this one is waiting on that are not done or cancelled. `GET /tasks/staff` lists the staff who can be a manager or member. `GET /tasks/:id` returns the task plus `canDelete`, `blockedBy` and `blocking` (tasks with `id`, `title`, `status`, and `members`), `posts` (linked requests), and an `activity` array of `comment`, `status`, `member`, and `blocker` entries.
+
+### Create or change a task
+
+`POST /tasks` and `PATCH /tasks/:id` — **`dashboard`**
+
+```json
+{
+  "title": "Write the migration guide",
+  "description": "",
+  "status": "todo",
+  "priority": "high",
+  "managerId": 4,
+  "memberIds": [2, 3],
+  "health": "on_track",
+  "dueDate": "2026-11-20",
+  "blockedReason": "Waiting on legal sign-off"
+}
+```
+
+`title` is required on create and is 1–140 characters. `priority` is `none`, `low`, `medium`, `high`, or `urgent`. `health` is `on_track`, `at_risk`, `delayed`, or an empty string to clear it. `managerId` must be a staff member or `null`. `memberIds` is only read on create and takes up to 50 staff user IDs. Change members afterwards with the member endpoints below. `blockedReason` is up to 500 characters and is only kept while the status is `blocked`. Moving to `done` records `completedAt`, and finishing or cancelling a task clears its health. Moving a task out of `blocked` clears its reason and its blockers. Finishing a task notifies the manager and members of blocked tasks that were waiting on it. Adding someone as a member, or making them the manager, notifies them. Limited to 60 creates and 120 changes per minute.
+
+`DELETE /tasks/:id` — **`dashboard`** is limited to the task's creator, or `manage_tasks`.
+
+### Members
+
+`PUT /tasks/:id/members/:userId` and `DELETE /tasks/:id/members/:userId` — **`dashboard`**
+
+Adding is idempotent, notifies the new member, and records an entry in the activity timeline. Removing records one too. `userId` must be a staff member, otherwise `400`. Returns `{ "ok": true }`, or `404` when the task does not exist.
+
+### Block a task and link requests
+
+`PUT /tasks/:id/blockers/:blockerId` and `DELETE /tasks/:id/blockers/:blockerId` — **`dashboard`**
+
+Marks the task as waiting on another task. A task in `todo` or `in_progress` moves to `blocked` automatically. A task can't block itself, and a link that would make tasks wait on each other, directly or through a chain, returns `400`. Adding the same blocker twice is harmless. Returns `{ "ok": true }`, or `404` when either task does not exist.
+
+`PUT /tasks/:id/posts/:postId` and `DELETE /tasks/:id/posts/:postId` — **`dashboard`**
+
+Links or unlinks a request. A task can link to any number of requests. Returns `{ "ok": true }`, or `404`.
+
+### Comment on a task
+
+`POST /tasks/:id/activity` — **`dashboard`**
+
+```json
+{ "body": "Draft is ready for review.", "status": "in_progress", "health": "on_track" }
+```
+
+`body` is trimmed and 1–2000 characters. `status` and `health` are optional and are applied together with the comment, using the same rules as `PATCH /tasks/:id`: a status change is recorded in the timeline, leaving `blocked` clears the blockers, and finishing a task notifies the people waiting on it. Without them the comment changes nothing else. The manager, members, and creator are notified. Returns the entry with HTTP `201`. Limited to 60 requests per minute. `DELETE /tasks/:id/activity/:activityId` removes a comment its owner wrote, or any comment with `manage_tasks`.
 
 ## Tags
 
